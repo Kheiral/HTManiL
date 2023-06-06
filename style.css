@@ -1,0 +1,304 @@
+body {
+    background-color: #2a2a2a;
+    overflow: hidden;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 100vh;
+    margin: 0;
+}
+
+body > *{
+    box-sizing: border-box;
+}
+
+@font-face{
+    font-family: 'Combo';
+    src: url('./fonts/Top-Show.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face{
+    font-family: 'Score';
+    src: url('./fonts/RAXTOR-Custom.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face{
+    font-family: 'Main';
+    src: url('./fonts/Orbitron-Black.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+.combo-font{
+    font-family: 'Combo';
+}
+.score-font{
+    font-family: 'Score';
+}
+.main-font{
+    font-family: 'Main';
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+  display: none;
+}
+
+#dif-selector{
+    display: flex;
+    flex-direction: column;
+    width: 10%;
+    height: 100%;
+}
+
+#pause-screen{
+    position: absolute;
+    display: none;
+    height: 100vh;
+    width:100%;
+    flex-direction: column;
+    margin: 0 auto;
+    top:0px;
+    align-self:center;
+    padding: 5% 0 5% 0;
+    background-color: rgba(0,0,0,0.8);
+}
+
+#pause-screen > *{
+    height:10%;
+    margin:auto;
+    z-index:10;
+    width:40%;
+    color: black;
+    font-size: 40px;
+    height:20%;
+}
+
+#fps-counter{
+    position: absolute;
+    bottom:8px;
+    right:8px;
+    color: white;
+    font-size: 20px;
+    z-index: 10;
+}
+
+#playarea{
+    position: absolute;
+	height: 100vh;
+	width: 32%;
+	margin: 0 auto;
+	border-left: 5px solid white;
+    border-right: 5px solid white;
+    top:0px;
+    align-self:center;
+    left:50%;
+    transform: translate(-50%);
+    background-color: black;
+}
+
+#overlay > *{
+    z-index: 5;
+    transform: translate(-50%, 0);
+    left: 50%;
+}
+
+#top-container{
+    position: absolute;
+    top: 3%;
+}
+
+#score{
+    top:0;
+    right:0;
+    color: white;
+    font-size: 70px;
+    position:absolute;
+    z-index:10;
+}
+
+#progress-bar{
+    position:absolute;
+    top:0;
+    width:0;
+    height: 5px;
+    background-color:#50DFFD;
+    z-index:10;
+    float:left;
+}
+
+#accuracy{
+    color: darkgray;
+    font-size: 40px;
+}
+
+#user-vars{
+    position: absolute;
+    color: darkgray;
+    font-size: 20px;
+    text-align: center;
+    top: 20%;
+    width: 100%;
+    white-space: pre-wrap;
+}
+
+#scroll-speed, #offset{
+    opacity: 0;
+}
+
+#ur-bar{
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 3px;
+    height: 25px;
+    background-color: rgb(234, 234, 234);
+}
+
+.ur-note{
+    z-index:10;
+    width: 3px;
+    height: 25px;
+    position: absolute;
+}
+
+#combo{
+    position: absolute;
+    font-size: 50px;
+    color: rgb(234, 234, 234);
+    top: 47%;
+}
+
+#judgement{
+    position: absolute;
+    font-size: 30px;
+    top: 50%;
+}
+
+
+#line {
+	height: 4px;
+	width: 100%;
+	background-color: green;
+	position: absolute;
+}
+
+#container {
+	position: relative;
+	height: 100vh;
+	width: 100%;
+	margin: 0 auto;
+	overflow: hidden;
+    display: inline-block;
+}
+
+.column {
+    width: 25%;
+    height: 100%;
+    background-color: black;
+    float: left;
+  }
+
+#col1 .note, #col4 .note{
+    background-color:#50DFFD;
+}
+
+#col2 .note, #col3 .note{
+    background-color:white;
+}
+
+#col1 .hold, #col4 .hold{
+    background-color:#50DFFD;
+}
+
+#col2 .hold, #col3 .hold{
+    background-color:white;
+}
+
+.hold{
+    z-index:1;
+    width:100%;
+    position: absolute;
+}
+
+.note {
+	position: absolute;
+	width: 25%;
+    aspect-ratio: 2/1;
+    overflow: visible;
+}
+
+.note-item{
+    width:100%;
+    position: absolute;
+    bottom: 0px;
+    z-index:4;
+    height: auto;
+}
+
+.hold-head{
+    z-index:3;
+    width:100%;
+    position: absolute;
+}
+
+.receptor{
+    position: absolute;
+    width:25%;
+    z-index:2;
+}
+
+#hit-count-container{
+    position:absolute;
+    height:420px;
+    width:140px;
+    top:50%;
+    right:0;
+    transform: translateY(-50%);
+    display:inline-flex;
+    flex-direction: column;
+}
+#hit-count-container > *{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+    text-align: center;
+    flex: 1;
+    margin: 5px;
+    background-color: rgba(0,0,0,0.8);
+    aspect-ratio: 2;
+    opacity:75%;
+}
+#user-ratio{
+    background-color:transparent;
+    color:white;
+}
+#_320-count{
+    border: 3px solid #50DFFD;
+    color: #50DFFD;
+}
+#_300-count{
+    border: 3px solid #ffe061;
+    color: #ffe061
+}
+#_200-count{
+    border: 3px solid #41ff18;
+    color: #41ff18
+}
+#_100-count{
+    border: 3px solid #57acff;
+    color: #57acff
+}
+#_50-count{
+    border: 3px solid #b900e4;
+    color: #b900e4
+}
+#_0-count{
+    border: 3px solid #ff0000;
+    color: #ff0000
+}
