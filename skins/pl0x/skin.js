@@ -30,3 +30,5 @@ window.styleVars = {
 	"playfieldBorderColor": "#FFFFFF",
 	"judgementLineColor": "green"
 }
+
+loadSkinStyle();
