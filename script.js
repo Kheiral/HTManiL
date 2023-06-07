@@ -109,7 +109,7 @@ readFromCache();
 
 //USER MODIFIABLE VARIABLES WITHOUT IMPLEMENTATION
 let fpsCounter = false;
-let autoplay = false;
+let autoplay = true;
 //END OF USER MODIFIABLE VARIABLES
 let judgeTextSize = 40;
 let bigJudgeTextSize = judgeTextSize * 1.25;
@@ -786,14 +786,14 @@ function judgeTextAnimate() {
   if (judgement.timeoutId2) {
     clearTimeout(judgement.timeoutId2);
   }
-
+  
   // Assign a new timeout ID to the input element
   judgement.timeoutId = setTimeout(() => {
     requestAnimationFrame(() => {
       judgement.style.fontSize = judgeTextSize + 'px';
       judgement.style.transition = "font-size 0.1s";
     });
-  }, 0);
+  }, 5);
   judgement.timeoutId2 = setTimeout(() => {
     judgement.style.opacity = 0;
     judgement.style.transition = "opacity 0.1s";
