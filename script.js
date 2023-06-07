@@ -56,8 +56,8 @@ function readFromCache() {
           // Parse the response body as JSON to get the user variables
           return response.json();
         } else {
-          scrollSpeedVar = 32;
-          scrollSpeed = 3.2; // pixels per millisecond
+          scrollSpeedVar = 28;
+          scrollSpeed = 2.8; // pixels per millisecond
           visualOffset = 0;
           audioOffset = 0;
           writeToCache();
@@ -125,30 +125,30 @@ retryCount = 0;
 let downscrollMod = 'bottom';
 let hitPosition = 30;
 
-function loadSkinStyle(){
+function loadSkinStyle() {
   if (window.selectedSkin) {
     playArea.style.width = window.styleVars.playfieldWidth;
     playArea.style.borderRight = window.styleVars.playfieldBorderSize + ' solid ' + window.styleVars.playfieldBorderColor;
     playArea.style.borderLeft = playArea.style.borderRight;
     document.getElementById('hit-count-container').style.right = window.styleVars.hitCountOffset_X;
-  
+
     downscroll = window.styleVars.downscroll;
     judgeTextSize = parseInt(window.styleVars.judgementTextSize);
     bigJudgeTextSize = judgeTextSize * window.styleVars.judgeTextPopFactor
     hitPosition = parseInt(window.styleVars.hitPosition);
-  
+
     accuracyText.style.fontSize = window.styleVars.accuracyTextSize
     comboNumber.style.fontSize = window.styleVars.comboTextSize
     scoreText.style.fontSize = window.styleVars.scoreTextSize
     urBar.style.height = window.styleVars.urBarHeight
-  
+
     window.backgroundDim = window.styleVars.backgroundDim
     judgementLine.style.opacity = window.styleVars.judgementLineOpacity
-  
+
     urBar.style.top = window.styleVars.urBarOffset_Y
     comboNumber.style.top = window.styleVars.comboOffset_Y
     judgement.style.top = window.styleVars.judgementOffset_Y
-  
+
     judgementLine.style.backgroundColor = window.styleVars.judgementLineColor
     downscrollMod = downscroll ? 'bottom' : 'top';
     noteResize();
@@ -201,8 +201,22 @@ function onWindowResize() {
 }
 
 async function start() {
-  mapUrl = 'https://api.chimu.moe/v1/download/' + mapInput.value + '?n=1'
-  downloadFile(mapUrl, mapInput.value);
+  if (Number.isInteger(mapInput.value)) {
+    mapUrl = 'https://api.chimu.moe/v1/download/' + mapInput.value + '?n=1'
+  }
+  else {
+    const regex = /beatmapsets\/(\d+)#/;
+    const match = mapInput.value.match(regex);
+    if (match) {
+      mapUrl = 'https://api.chimu.moe/v1/download/' + match[1] + '?n=1'
+      console.log("Isolated ID:", mapUrl);
+    } else {
+      console.log("No match found.");
+    }
+  }
+  if(mapUrl){
+    downloadFile(mapUrl, mapInput.value);
+  }
 }
 
 async function downloadFile(mapUrl, mapID) {
@@ -215,7 +229,7 @@ async function downloadFile(mapUrl, mapID) {
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
-    else{
+    else {
       startButton.disabled = true;
     }
 
@@ -788,7 +802,7 @@ function judgeTextAnimate() {
   if (judgement.timeoutId2) {
     clearTimeout(judgement.timeoutId2);
   }
-  
+
   // Assign a new timeout ID to the input element
   judgement.timeoutId = setTimeout(() => {
     requestAnimationFrame(() => {
