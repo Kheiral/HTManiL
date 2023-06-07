@@ -201,18 +201,16 @@ function onWindowResize() {
 }
 
 async function start() {
-  if (Number.isInteger(mapInput.value)) {
+  const regex = /beatmapsets\/(\d+)#/;
+  const match = mapInput.value.match(regex);
+  if (match) {
+    mapUrl = 'https://api.chimu.moe/v1/download/' + match[1] + '?n=1'
+    console.log("Isolated ID:", mapUrl);
+  } else if(Number.isInteger(parseInt(mapInput.value, 10))){
     mapUrl = 'https://api.chimu.moe/v1/download/' + mapInput.value + '?n=1'
   }
-  else {
-    const regex = /beatmapsets\/(\d+)#/;
-    const match = mapInput.value.match(regex);
-    if (match) {
-      mapUrl = 'https://api.chimu.moe/v1/download/' + match[1] + '?n=1'
-      console.log("Isolated ID:", mapUrl);
-    } else {
-      console.log("No match found.");
-    }
+  else{
+    console.log("No match found.");
   }
   if(mapUrl){
     downloadFile(mapUrl, mapInput.value);
