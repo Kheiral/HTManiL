@@ -11,7 +11,7 @@ document.addEventListener('drop', handleSkinDrop);
 const defaultSkins = [
   'pl0x',
   //'yugen',
-  //'attang',
+  'attang',
   //'stepmania',
 ]
 

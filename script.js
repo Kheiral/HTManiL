@@ -201,7 +201,6 @@ function onWindowResize() {
 }
 
 async function start() {
-  startButton.disabled = true;
   mapUrl = 'https://api.chimu.moe/v1/download/' + mapInput.value + '?n=1'
   downloadFile(mapUrl, mapInput.value);
 }
@@ -215,6 +214,9 @@ async function downloadFile(mapUrl, mapID) {
 
     if (!response.ok) {
       throw new Error('Network response was not ok');
+    }
+    else{
+      startButton.disabled = true;
     }
 
     const reader = response.body.getReader();
