@@ -109,7 +109,7 @@ readFromCache();
 
 //USER MODIFIABLE VARIABLES WITHOUT IMPLEMENTATION
 let fpsCounter = false;
-let autoplay = true;
+let autoplay = false;
 //END OF USER MODIFIABLE VARIABLES
 let judgeTextSize = 40;
 let bigJudgeTextSize = judgeTextSize * 1.25;
