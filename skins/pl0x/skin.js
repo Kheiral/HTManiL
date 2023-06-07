@@ -15,7 +15,7 @@ window.styleVars = {
 	//PERCENTAGE VALUES (You can technically use px for these but I would avoid it)
 
 	"playfieldWidth": "32%", //Centered
-	"hitCountOffset_X": "28.8%", //From right side of screen
+	"hitCountOffset_X": "0%", //From right side of screen
 	"urBarOffset_Y": "45%", //From top of screen
 	"comboOffset_Y": "47%", //From top of screen
 	"judgementOffset_Y": "50%", //From top of screen
