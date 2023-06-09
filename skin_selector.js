@@ -9,6 +9,7 @@ document.addEventListener('dragover', handleDragOver);
 document.addEventListener('drop', handleSkinDrop);
 
 const defaultSkins = [
+  'default',
   'pl0x',
   //'yugen',
   'attang',
@@ -162,8 +163,14 @@ function createDropdown() {
 
 function handleSelectionChange() {
   selectedSkinName = skinDropdown.value;
-  window.selectedSkin = window.skinMap.get(skinDropdown.value)
-  loadScript(window.selectedSkin[`skin.js`]);
+  if(skinDropdown.value === 'default'){
+    window.selectedSkin = false
+    loadScript('./default_skin.js');
+  }
+  else{
+    window.selectedSkin = window.skinMap.get(skinDropdown.value)
+    loadScript(window.selectedSkin[`skin.js`]);
+  }
 }
 
 skinDropdown.addEventListener('change', handleSelectionChange);
