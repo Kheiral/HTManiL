@@ -7,7 +7,7 @@
   <body class="combo-font">
     <div id="map-input">
       <input id="map-id-input" placeholder="Beatmap URL or ID">
-      <button onclick="retrieveMapInfo()" id="start-button">Start</button>
+      <button onclick="retrieveMapInfo()" id="start-button">Import</button>
       <span id="download-percent" style="color:white;"></span>
     </div>
     <div id="song-selector">
@@ -24,7 +24,7 @@
       <button id="quit-button" class="main-font">Quit</button>
     </div>
     <span id="score" class="score-font"></span>
-    <div id="game" style="display:none">
+    <div id="game" style="display:block">
       <div id="playarea">
         <div id="overlay">
           <div id="progress-bar"></div>
@@ -61,8 +61,8 @@
       </div>
     </div>
     <script src="jszip.min.js"></script>
+    <script src="menu.js"></script>
     <script src="script.js"></script>
     <script src="skin_selector.js"></script>
-    <script src="menu.js"></script>
   </body>
 </html>

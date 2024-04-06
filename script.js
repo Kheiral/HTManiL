@@ -1,7 +1,6 @@
 const judgementLine = document.getElementById('line')
 const comboNumber = document.getElementById('combo');
 const judgement = document.getElementById('judgement');
-const difSelector = document.getElementById('dif-selector');
 const scrollSpeedText = document.getElementById('scroll-speed');
 const offsetText = document.getElementById('offset');
 const pauseOverlay = document.getElementById('pause-screen');
@@ -230,7 +229,7 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
 
       const blob = new Blob(chunks);
       const zip = await unZipper.loadAsync(blob);
-      unZipFunction(zip, mapID);  
+      unZipFunction(zip, mapID);
 
     }
   } catch (error) {
@@ -272,166 +271,152 @@ async function unZipFunction(zip, mapID) {
     }
   }
 
-  console.log(fileMap);
+  mapInput.style.display = 'none';
+  startButton.style.display = 'none';
+  downloadPercent.style.display = 'none';
+  skinDropdown.style.display = 'none';
+  gameDiv.style.display = 'block';
+  window.hitValue = 0;
+  window.totalNotes = 0;
+  //PARSE [HitObjects] FIELD
+  const selectedFile = fileMap.get(mapID);
+  const fileContent = selectedFile.file;
+  window.hitObjects = fileContent.substring(fileContent.indexOf("[HitObjects]") + 13).trim();
+  const hoLines = window.hitObjects.split("\n");
+  const lastLine = hoLines[hoLines.length - 1];
+  var [, , lastHOTime, , , lastHOTimeStr] = lastLine.split(',');
+  lastHOTime = parseInt(lastHOTime);
+  lastHOReleaseTime = parseInt(lastHOTimeStr.split(':')[0]); // parse release time if long note
+  if (lastHOReleaseTime > lastHOTime) {
+    window.finalTime = lastHOReleaseTime
+  }
+  else {
+    window.finalTime = lastHOTime;
+  }
 
-  const difButtons = difSelector.querySelectorAll("button");
-  difButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      //Get the id of the button that was clicked
-      const id = parseInt(button.id);
-      //Disable all buttons
-      difButtons.forEach(button => {
-        button.disabled = true;
-      });
-      mapInput.style.display = 'none';
-      difSelector.style.display = 'none';
-      startButton.style.display = 'none';
-      downloadPercent.style.display = 'none';
-      skinDropdown.style.display = 'none';
-      gameDiv.style.display='block';
-      window.hitValue = 0;
-      window.totalNotes = 0;
-      //PARSE [HitObjects] FIELD
-      const selectedFile = fileMap.get(mapID);
-      const fileContent = selectedFile.file;
-      window.hitObjects = fileContent.substring(fileContent.indexOf("[HitObjects]") + 13).trim();
-      const hoLines = window.hitObjects.split("\n");
-      const lastLine = hoLines[hoLines.length - 1];
-      var [, , lastHOTime, , , lastHOTimeStr] = lastLine.split(',');
-      lastHOTime = parseInt(lastHOTime);
-      lastHOReleaseTime = parseInt(lastHOTimeStr.split(':')[0]); // parse release time if long note
-      if (lastHOReleaseTime > lastHOTime) {
-        window.finalTime = lastHOReleaseTime
-      }
-      else {
-        window.finalTime = lastHOTime;
-      }
+  //PARSE [TimingPoints] FIELD
+  rawTimingPoints = fileContent.substring(fileContent.indexOf("[TimingPoints]") + 15).trim();
+  const timingPointsLines = rawTimingPoints.split('\n');
 
-      //PARSE [TimingPoints] FIELD
-      rawTimingPoints = fileContent.substring(fileContent.indexOf("[TimingPoints]") + 15).trim();
-      const timingPointsLines = rawTimingPoints.split('\n');
+  timingPoints = [];
+  for (const line of timingPointsLines) {
+    if (line.startsWith("[HitObjects]") || line.trim() === "") {
+      break; // Stop parsing when [HitObjects] or an empty line is encountered
+    }
+    var [offset, beatLength, meter, sampleIndex, sampleID, volume, unique, fx] = line.split(',');
+    beatLength = parseFloat(beatLength);
+    offset = parseFloat(offset);
+    unique = !!parseInt(unique);
+    timingPoints.push({ offset, beatLength, meter, sampleIndex, sampleID, volume, unique, fx });
+  }
 
-      timingPoints = [];
-      for (const line of timingPointsLines) {
-        if (line.startsWith("[HitObjects]") || line.trim() === "") {
-          break; // Stop parsing when [HitObjects] or an empty line is encountered
-        }
-        var [offset, beatLength, meter, sampleIndex, sampleID, volume, unique, fx] = line.split(',');
-        beatLength = parseFloat(beatLength);
-        offset = parseFloat(offset);
-        unique = !!parseInt(unique);
-        timingPoints.push({ offset, beatLength, meter, sampleIndex, sampleID, volume, unique, fx });
+  initialTiming = timingPoints[0].offset
+  const calcMap = new Map();
+  previousBPMBeatLength = 0;
+  for (let i = 0; i < timingPoints.length - 1; i++) {
+    thisTimingPointLength = (timingPoints[i + 1].offset - timingPoints[i].offset)
+    if (timingPoints[i].unique) {//If this is a unique timing point and does not inherit the previous BPM
+      if (calcMap.get(timingPoints[i].beatLength)) {//If that beatlength already exists
+        totalTimeAtBpm = calcMap.get(timingPoints[i].beatLength) + thisTimingPointLength;
       }
-
-      initialTiming = timingPoints[0].offset
-      const calcMap = new Map();
-      previousBPMBeatLength = 0;
-      for (let i = 0; i < timingPoints.length - 1; i++) {
-        thisTimingPointLength = (timingPoints[i + 1].offset - timingPoints[i].offset)
-        if (timingPoints[i].unique) {//If this is a unique timing point and does not inherit the previous BPM
-          if (calcMap.get(timingPoints[i].beatLength)) {//If that beatlength already exists
-            totalTimeAtBpm = calcMap.get(timingPoints[i].beatLength) + thisTimingPointLength;
-          }
-          else {//Otherwise, dont parse it
-            totalTimeAtBpm = thisTimingPointLength
-          }
-          calcMap.set(timingPoints[i].beatLength, totalTimeAtBpm)
-          previousBPMBeatLength = timingPoints[i].beatLength;
-        }
-        else if (timingPoints[i + 1]) {//If this inherits the previous BPM and does not define a new one, add it the time it runs for to the total time since the last BPM change
-          totalTimeAtBpm = calcMap.get(previousBPMBeatLength) + thisTimingPointLength;
-          calcMap.set(previousBPMBeatLength, totalTimeAtBpm);
-        }
+      else {//Otherwise, dont parse it
+        totalTimeAtBpm = thisTimingPointLength
       }
-      maxValue = Number.NEGATIVE_INFINITY;
-      for (const [key, value] of calcMap.entries()) {
-        if (value > maxValue) {
-          maxValue = value;
-          modeBpmBeatLength = key;
-        }
-      }
-      console.log(modeBpmBeatLength);
-      window.simplifiedSVArray = [];
-      let totalSV = 1;
-      let lastBPMSV = 1;
-      let lastSimpleSV = 1;
-      for (i = 0; i < timingPoints.length - 1; i++) {
-        if (!timingPoints[i].unique) {
-          lastSimpleSV = (-100 / timingPoints[i].beatLength);
-        }
-        else {
-          lastBPMSV = modeBpmBeatLength / timingPoints[i].beatLength;
-          lastSimpleSV = 1;
-        }
-        totalSV = parseFloat(lastSimpleSV * lastBPMSV);
-        if (timingPoints[i + 1]) {
-          svDuration = timingPoints[i + 1].offset - timingPoints[i].offset
-        }
-        else {
-          svDuration = window.finalTime - timingPoints[i].offset;
-        }
-        window.simplifiedSVArray.push({
-          'offset': timingPoints[i].offset,
-          'SV': totalSV,
-          'duration': svDuration,
-        });
-      }
-      if (!window.simplifiedSVArray[1]) {
-        initialSV = 1;
-      }
-      else if (window.simplifiedSVArray[0].offset == window.simplifiedSVArray[1].offset) {
-        initialSV = window.simplifiedSVArray[1].SV;
-      }
-      else {
-        initialSV = window.simplifiedSVArray[0].SV;
-      }
-      window.simplifiedSVArray.unshift({
-        'offset': -3000,
-        'SV': initialSV,
-        'duration': timingPoints[0].offset + 3000,
-      })
-      window.simplifiedSVArray.push({
-        'offset': window.finalTime + 1,
-        'SV': totalSV,
-        'duration': 0,
-      })
-      console.log(window.simplifiedSVArray)
-      //PARSE [Difficulty] FIELD
-      const difficultySelection = fileContent.match(/\[Difficulty\][\s\S]*?\n\n/);
-      const difficultyInfo = difficultySelection[0].trim();
-      const ODMatch = difficultyInfo.match(/OverallDifficulty:(.*)/);
-      const fileOD = ODMatch ? ODMatch[1].trim() : '';
-      const OD = fileOD * odMod;
-      perfTW = 64 - (3 * OD);
-      greatTW = 97 - (3 * OD);
-      goodTW = 127 - (3 * OD);
-      badTW = 151 - (3 * OD);
-      missTW = 188 - (3 * OD);
-      //PARSE [General] FIELD
-      const generalSelection = fileContent.match(/\[General\][\s\S]*?\n\n/);
-      const general = generalSelection[0].trim();
-      const audioFilenameMatch = general.match(/AudioFilename:(.*)/);
-      const audioFilename = audioFilenameMatch ? audioFilenameMatch[1].trim() : '';
-      const audioFileIndex = files.findIndex(file => file.filename === audioFilename);
-      audio = new Audio(files[audioFileIndex].file);
-      //PARSE [Events] FIELD
-      const eventsSelection = fileContent.match(/\[Events\][\s\S]*?\n\n/);
-      const events = eventsSelection[0].trim();
-      const eventLines = events.split('\n');
-      let imageName = '';
-      const startIndex = eventLines.indexOf("//Background and Video events");
-      if (startIndex !== -1) {
-        const line = eventLines[startIndex + 1]
-        imageName = line.split(',')[2].replace(/"/g, '');
-        //console.log('BG image: '+imageName);
-      }
-      const imageIndex = files.findIndex(file => file.filename.toLowerCase() === imageName.toLowerCase());
-      document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${window.backgroundDim}), rgba(0,0,0,${window.backgroundDim})), url(${files[imageIndex].file})`;
-      //STARTS THE CHART
-      audio.volume = 0.05;
-      mapStart();
+      calcMap.set(timingPoints[i].beatLength, totalTimeAtBpm)
+      previousBPMBeatLength = timingPoints[i].beatLength;
+    }
+    else if (timingPoints[i + 1]) {//If this inherits the previous BPM and does not define a new one, add it the time it runs for to the total time since the last BPM change
+      totalTimeAtBpm = calcMap.get(previousBPMBeatLength) + thisTimingPointLength;
+      calcMap.set(previousBPMBeatLength, totalTimeAtBpm);
+    }
+  }
+  maxValue = Number.NEGATIVE_INFINITY;
+  for (const [key, value] of calcMap.entries()) {
+    if (value > maxValue) {
+      maxValue = value;
+      modeBpmBeatLength = key;
+    }
+  }
+  console.log(modeBpmBeatLength);
+  window.simplifiedSVArray = [];
+  let totalSV = 1;
+  let lastBPMSV = 1;
+  let lastSimpleSV = 1;
+  for (i = 0; i < timingPoints.length - 1; i++) {
+    if (!timingPoints[i].unique) {
+      lastSimpleSV = (-100 / timingPoints[i].beatLength);
+    }
+    else {
+      lastBPMSV = modeBpmBeatLength / timingPoints[i].beatLength;
+      lastSimpleSV = 1;
+    }
+    totalSV = parseFloat(lastSimpleSV * lastBPMSV);
+    if (timingPoints[i + 1]) {
+      svDuration = timingPoints[i + 1].offset - timingPoints[i].offset
+    }
+    else {
+      svDuration = window.finalTime - timingPoints[i].offset;
+    }
+    window.simplifiedSVArray.push({
+      'offset': timingPoints[i].offset,
+      'SV': totalSV,
+      'duration': svDuration,
     });
-  });
+  }
+  if (!window.simplifiedSVArray[1]) {
+    initialSV = 1;
+  }
+  else if (window.simplifiedSVArray[0].offset == window.simplifiedSVArray[1].offset) {
+    initialSV = window.simplifiedSVArray[1].SV;
+  }
+  else {
+    initialSV = window.simplifiedSVArray[0].SV;
+  }
+  window.simplifiedSVArray.unshift({
+    'offset': -3000,
+    'SV': initialSV,
+    'duration': timingPoints[0].offset + 3000,
+  })
+  window.simplifiedSVArray.push({
+    'offset': window.finalTime + 1,
+    'SV': totalSV,
+    'duration': 0,
+  })
+  console.log(window.simplifiedSVArray)
+  //PARSE [Difficulty] FIELD
+  const difficultySelection = fileContent.match(/\[Difficulty\][\s\S]*?\n\n/);
+  const difficultyInfo = difficultySelection[0].trim();
+  const ODMatch = difficultyInfo.match(/OverallDifficulty:(.*)/);
+  const fileOD = ODMatch ? ODMatch[1].trim() : '';
+  const OD = fileOD * odMod;
+  perfTW = 64 - (3 * OD);
+  greatTW = 97 - (3 * OD);
+  goodTW = 127 - (3 * OD);
+  badTW = 151 - (3 * OD);
+  missTW = 188 - (3 * OD);
+  //PARSE [General] FIELD
+  const generalSelection = fileContent.match(/\[General\][\s\S]*?\n\n/);
+  const general = generalSelection[0].trim();
+  const audioFilenameMatch = general.match(/AudioFilename:(.*)/);
+  const audioFilename = audioFilenameMatch ? audioFilenameMatch[1].trim() : '';
+  const audioFileIndex = files.findIndex(file => file.filename === audioFilename);
+  audio = new Audio(files[audioFileIndex].file);
+  //PARSE [Events] FIELD
+  const eventsSelection = fileContent.match(/\[Events\][\s\S]*?\n\n/);
+  const events = eventsSelection[0].trim();
+  const eventLines = events.split('\n');
+  let imageName = '';
+  const startIndex = eventLines.indexOf("//Background and Video events");
+  if (startIndex !== -1) {
+    const line = eventLines[startIndex + 1]
+    imageName = line.split(',')[2].replace(/"/g, '');
+    //console.log('BG image: '+imageName);
+  }
+  const imageIndex = files.findIndex(file => file.filename.toLowerCase() === imageName.toLowerCase());
+  document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${window.backgroundDim}), rgba(0,0,0,${window.backgroundDim})), url(${files[imageIndex].file})`;
+  //STARTS THE CHART
+  audio.volume = 0.05;
+  mapStart();
 }
 
 function mapStart() {

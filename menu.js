@@ -1,4 +1,8 @@
+const difSelector = document.getElementById('dif-selector');
+difButtons = difSelector.querySelectorAll("button");
 beatmapInfoMap = new Map();
+
+console.log('menu script running')
 
 caches.open('mapCache').then((cache) => {
     // Retrieve the cached response associated with the key
@@ -10,6 +14,7 @@ caches.open('mapCache').then((cache) => {
                 const mapData = new Map(Object.entries(jsonData));
                 beatmapInfoMap = mapData;
                 console.log(beatmapInfoMap);
+                generateButtons();
             });
         }
         else{
@@ -18,11 +23,10 @@ caches.open('mapCache').then((cache) => {
     });
 });
 
-
-
 async function retrieveMapInfo() {//This uses the API to get info such as SR, Difficulty, etc. of maps to be displayed for the user to select
     const regex = /beatmapsets\/(\d+)#/;
     const match = mapInput.value.match(regex);
+    mapInput.value = '';
     if (match) {
       setID = match[1]
       console.log("Isolated ID:", setID);
@@ -34,7 +38,6 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
     }
     if(setID){
         infoUrl = 'https://api.chimu.moe/v1/set/' + setID
-        startButton.disabled = true;
         const infoResponse = await fetch(infoUrl);
         if (!infoResponse.ok) {
             throw new Error('Info network response was not ok');
@@ -56,5 +59,36 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
                 cache.put('mapData', new Response(jsonData));
             });
         });
+        generateButtons();
     }
+}
+
+async function generateButtons(){
+    while (difSelector.firstChild) {
+        difSelector.removeChild(difSelector.firstChild);
+    }
+    const beatmapArray = Array.from(beatmapInfoMap);
+    beatmapArray.sort((a, b) => {
+        return a[1].DifficultyRating - b[1].DifficultyRating;
+    });
+    console.log(beatmapArray);
+    beatmapArray.forEach((element)=>{
+        const button = document.createElement('button');
+        button.id = element[0]
+        button.textContent = element[1].Title +'\n'+element[1].DiffName+' ('+element[1].DifficultyRating+')'
+        
+        difSelector.appendChild(button);
+    })
+    difButtons = difSelector.querySelectorAll("button");
+    difButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            //Get the id of the button that was clicked
+            downloadFile(parseInt(button.id));
+            //Disable all buttons
+            difButtons.forEach(button => {
+                button.disabled = true;
+                difSelector.style.display = 'none';
+            });
+        });
+    });
 }
