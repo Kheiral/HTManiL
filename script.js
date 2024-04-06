@@ -201,8 +201,9 @@ function onWindowResize() {
   }, 250);
 }
 
-async function downloadFile(setID) {//This actually downloads and parses the maps
-  mapUrl = 'https://api.chimu.moe/v1/download/' + setID + '?n=1'
+async function downloadFile(mapID) {//This actually downloads and parses the maps
+  selectedMap = beatmapInfoMap.get(mapID);
+  mapUrl = 'https://api.chimu.moe/v1/download/' + selectedMap.ParentSetId + '?n=1'
   try {
     const response = await fetch(mapUrl);
     const contentLength = response.headers.get('content-length');
@@ -229,7 +230,7 @@ async function downloadFile(setID) {//This actually downloads and parses the map
 
       const blob = new Blob(chunks);
       const zip = await unZipper.loadAsync(blob);
-      unZipFunction(zip, beatmapDataMap);  
+      unZipFunction(zip, mapID);  
 
     }
   } catch (error) {
@@ -237,7 +238,7 @@ async function downloadFile(setID) {//This actually downloads and parses the map
   }
 }
 
-async function unZipFunction(zip, beatmapDataMap) {
+async function unZipFunction(zip, mapID) {
   const files = [];
   await Promise.all(
     Object.keys(zip.files).map(async (filename) => {
@@ -252,7 +253,6 @@ async function unZipFunction(zip, beatmapDataMap) {
       files.push({ filename, file: finalFile });
     })
   );
-  const beatmapDiffArray = [];
   const fileMap = new Map();
   for (let i = 0; i < files.length; i++) {
     if (files[i].filename.endsWith(".osu")) {
@@ -267,27 +267,11 @@ async function unZipFunction(zip, beatmapDataMap) {
         const sourceMatch = metadata.match(/Source:(.*)/);
         const beatmapID = parseInt(metadata.match(/BeatmapID:(.*)/)[1].trim());
 
-        const diffName = diffNameMatch ? diffNameMatch[1].trim() : '';
-
-        const currentBeatMap = beatmapDataMap.get(beatmapID);
-        const currentBeatMapDifficulty = currentBeatMap.DifficultyRating;
-        beatmapDiffArray.push({beatmapID,diffName,currentBeatMapDifficulty});
         fileMap.set(beatmapID, files[i]);
       }
     }
   }
 
-  beatmapDiffArray.sort((a, b) => {
-    // Compare the currentBeatMapDifficulty of each object
-    return a.currentBeatMapDifficulty - b.currentBeatMapDifficulty;
-  });
-
-  for (let p = 0; p < beatmapDiffArray.length; p++){
-    const button = document.createElement('button');
-    button.id = beatmapDiffArray[p].beatmapID;
-    button.textContent = beatmapDiffArray[p].diffName + ' (' + beatmapDiffArray[p].currentBeatMapDifficulty + ')';
-    difSelector.appendChild(button);
-  }
   console.log(fileMap);
 
   const difButtons = difSelector.querySelectorAll("button");
@@ -308,7 +292,7 @@ async function unZipFunction(zip, beatmapDataMap) {
       window.hitValue = 0;
       window.totalNotes = 0;
       //PARSE [HitObjects] FIELD
-      const selectedFile = fileMap.get(id);
+      const selectedFile = fileMap.get(mapID);
       const fileContent = selectedFile.file;
       window.hitObjects = fileContent.substring(fileContent.indexOf("[HitObjects]") + 13).trim();
       const hoLines = window.hitObjects.split("\n");
