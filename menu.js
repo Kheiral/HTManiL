@@ -1,4 +1,4 @@
-const beatmapInfoMap = new Map();
+beatmapInfoMap = new Map();
 
 caches.open('mapCache').then((cache) => {
     // Retrieve the cached response associated with the key
