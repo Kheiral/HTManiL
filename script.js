@@ -23,6 +23,7 @@ const mapInput = document.getElementById("map-id-input");
 const startButton = document.getElementById("start-button");
 const urBar = document.getElementById('ur-bar');
 const playArea = document.getElementById('playarea');
+const gameDiv = document.getElementById('game');
 let frameCounter = 0;
 let initialTiming;
 let initialOffsetPX;
@@ -200,61 +201,43 @@ function onWindowResize() {
   }, 250);
 }
 
-async function start() {
-  const regex = /beatmapsets\/(\d+)#/;
-  const match = mapInput.value.match(regex);
-  if (match) {
-    mapUrl = 'https://api.chimu.moe/v1/download/' + match[1] + '?n=1'
-    console.log("Isolated ID:", mapUrl);
-  } else if(Number.isInteger(parseInt(mapInput.value, 10))){
-    mapUrl = 'https://api.chimu.moe/v1/download/' + mapInput.value + '?n=1'
-  }
-  else{
-    console.log("No match found.");
-  }
-  if(mapUrl){
-    downloadFile(mapUrl, mapInput.value);
-  }
-}
-
-async function downloadFile(mapUrl, mapID) {
+async function downloadFile(setID) {//This actually downloads and parses the maps
+  mapUrl = 'https://api.chimu.moe/v1/download/' + setID + '?n=1'
   try {
     const response = await fetch(mapUrl);
     const contentLength = response.headers.get('content-length');
     const totalSize = contentLength ? parseInt(contentLength, 10) : null;
     let loadedSize = 0;
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    else {
-      startButton.disabled = true;
-    }
-
     const reader = response.body.getReader();
     const chunks = [];
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      chunks.push(value);
-      loadedSize += value.length;
-      if (totalSize) {
-        const progress = Math.round(loadedSize / totalSize * 100);
-        downloadPercent.textContent = `Downloaded ${progress}%`;
-      }
+    if (!response.ok) {
+      throw new Error('Download network response was not ok');
     }
+    else {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        chunks.push(value);
+        loadedSize += value.length;
+        if (totalSize) {
+          const progress = Math.round(loadedSize / totalSize * 100);
+          downloadPercent.textContent = `Downloaded ${progress}%`;
+        }
+      }
 
-    const blob = new Blob(chunks);
-    const zip = await unZipper.loadAsync(blob);
-    unZipFunction(zip);
+      const blob = new Blob(chunks);
+      const zip = await unZipper.loadAsync(blob);
+      unZipFunction(zip, beatmapDataMap);  
+
+    }
   } catch (error) {
     console.error('Error downloading file:', error);
   }
 }
 
-async function unZipFunction(zip) {
+async function unZipFunction(zip, beatmapDataMap) {
   const files = [];
   await Promise.all(
     Object.keys(zip.files).map(async (filename) => {
@@ -269,6 +252,8 @@ async function unZipFunction(zip) {
       files.push({ filename, file: finalFile });
     })
   );
+  const beatmapDiffArray = [];
+  const fileMap = new Map();
   for (let i = 0; i < files.length; i++) {
     if (files[i].filename.endsWith(".osu")) {
       const fileContent = files[i].file;
@@ -278,23 +263,38 @@ async function unZipFunction(zip) {
         const titleMatch = metadata.match(/Title:(.*)/);
         const artistMatch = metadata.match(/Artist:(.*)/);
         const creatorMatch = metadata.match(/Creator:(.*)/);
-        const versionMatch = metadata.match(/Version:(.*)/);
+        const diffNameMatch = metadata.match(/Version:(.*)/);
         const sourceMatch = metadata.match(/Source:(.*)/);
+        const beatmapID = parseInt(metadata.match(/BeatmapID:(.*)/)[1].trim());
 
-        const version = versionMatch ? versionMatch[1].trim() : '';
+        const diffName = diffNameMatch ? diffNameMatch[1].trim() : '';
 
-        const button = document.createElement('button');
-        button.textContent = version;
-        button.id = i;
-        difSelector.appendChild(button);
+        const currentBeatMap = beatmapDataMap.get(beatmapID);
+        const currentBeatMapDifficulty = currentBeatMap.DifficultyRating;
+        beatmapDiffArray.push({beatmapID,diffName,currentBeatMapDifficulty});
+        fileMap.set(beatmapID, files[i]);
       }
     }
   }
+
+  beatmapDiffArray.sort((a, b) => {
+    // Compare the currentBeatMapDifficulty of each object
+    return a.currentBeatMapDifficulty - b.currentBeatMapDifficulty;
+  });
+
+  for (let p = 0; p < beatmapDiffArray.length; p++){
+    const button = document.createElement('button');
+    button.id = beatmapDiffArray[p].beatmapID;
+    button.textContent = beatmapDiffArray[p].diffName + ' (' + beatmapDiffArray[p].currentBeatMapDifficulty + ')';
+    difSelector.appendChild(button);
+  }
+  console.log(fileMap);
+
   const difButtons = difSelector.querySelectorAll("button");
   difButtons.forEach((button) => {
     button.addEventListener("click", () => {
       //Get the id of the button that was clicked
-      const id = button.id;
+      const id = parseInt(button.id);
       //Disable all buttons
       difButtons.forEach(button => {
         button.disabled = true;
@@ -304,10 +304,12 @@ async function unZipFunction(zip) {
       startButton.style.display = 'none';
       downloadPercent.style.display = 'none';
       skinDropdown.style.display = 'none';
+      gameDiv.style.display='block';
       window.hitValue = 0;
       window.totalNotes = 0;
       //PARSE [HitObjects] FIELD
-      const fileContent = files[id].file;
+      const selectedFile = fileMap.get(id);
+      const fileContent = selectedFile.file;
       window.hitObjects = fileContent.substring(fileContent.indexOf("[HitObjects]") + 13).trim();
       const hoLines = window.hitObjects.split("\n");
       const lastLine = hoLines[hoLines.length - 1];

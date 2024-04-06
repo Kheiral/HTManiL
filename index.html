@@ -7,8 +7,11 @@
   <body class="combo-font">
     <div id="map-input">
       <input id="map-id-input" placeholder="Beatmap URL or ID">
-      <button onclick="start()" id="start-button">Start</button>
+      <button onclick="retrieveMapInfo()" id="start-button">Start</button>
       <span id="download-percent" style="color:white;"></span>
+    </div>
+    <div id="song-selector">
+      
     </div>
     <div id="dif-selector">
       <!-- Difficulties will be added here dynamically -->
@@ -21,42 +24,45 @@
       <button id="quit-button" class="main-font">Quit</button>
     </div>
     <span id="score" class="score-font"></span>
-    <div id="playarea">
-      <div id="overlay">
-        <div id="progress-bar"></div>
-        <div id="top-container">
-          <span id="accuracy" class="score-font"></span>
+    <div id="game" style="display:none">
+      <div id="playarea">
+        <div id="overlay">
+          <div id="progress-bar"></div>
+          <div id="top-container">
+            <span id="accuracy" class="score-font"></span>
+          </div>
+          <div id="user-vars" class="main-font">
+            <div id="scroll-speed"></div>
+            <div id="offset"></div>
+          </div>
+          <div id="ur-bar">
+            <!-- UR elements will be added here dynamically -->
+          </div>
+          <span id="combo" class="combo-font"></span>
+          <span id="judgement" class="main-font"></span>
+          <div id="line"></div>
         </div>
-        <div id="user-vars" class="main-font">
-          <div id="scroll-speed"></div>
-          <div id="offset"></div>
+        <div id="container">
+            <!-- Note elements will be added here dynamically -->
+            <div class="column" id="col1"></div>
+            <div class="column" id="col2"></div>
+            <div class="column" id="col3"></div>
+            <div class="column" id="col4"></div>
         </div>
-        <div id="ur-bar">
-          <!-- UR elements will be added here dynamically -->
-        </div>
-        <span id="combo" class="combo-font"></span>
-        <span id="judgement" class="main-font"></span>
-        <div id="line"></div>
       </div>
-      <div id="container">
-          <!-- Note elements will be added here dynamically -->
-          <div class="column" id="col1"></div>
-          <div class="column" id="col2"></div>
-          <div class="column" id="col3"></div>
-          <div class="column" id="col4"></div>
+      <div id="hit-count-container" >
+        <div id="user-ratio" class="score-font">1.00:1</div>
+        <div id="_320-count" class="score-font">0</div>
+        <div id="_300-count" class="score-font">0</div>
+        <div id="_200-count" class="score-font">0</div>
+        <div id="_100-count" class="score-font">0</div>
+        <div id="_50-count" class="score-font">0</div>
+        <div id="_0-count" class="score-font">0</div>
       </div>
-    </div>
-    <div id="hit-count-container" >
-      <div id="user-ratio" class="score-font">1.00:1</div>
-      <div id="_320-count" class="score-font">0</div>
-      <div id="_300-count" class="score-font">0</div>
-      <div id="_200-count" class="score-font">0</div>
-      <div id="_100-count" class="score-font">0</div>
-      <div id="_50-count" class="score-font">0</div>
-      <div id="_0-count" class="score-font">0</div>
     </div>
     <script src="jszip.min.js"></script>
     <script src="script.js"></script>
     <script src="skin_selector.js"></script>
+    <script src="menu.js"></script>
   </body>
 </html>
