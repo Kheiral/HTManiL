@@ -13,7 +13,7 @@ caches.open('mapCache').then((cache) => {
                 // Convert the JSON object to a map
                 var arrayData = Object.values(jsonData);
                 arrayData.forEach(obj => {
-                    if (obj[0] && isInteger(obj[0])) {
+                    if (isInteger(obj[0]) && obj[0] != undefined) {
                         beatmapInfoMap.set(obj[0], obj[1]);
                     }
                     else {
