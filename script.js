@@ -44,8 +44,8 @@ let visualOffset
 let audioOffset
 keyBinds = []
 let keyToColumnMap
-let backgroundDim
-let masterVolume
+let backgroundDim = 0.95
+let masterVolume = 0.05
 
 function readFromCache() {
   // Check if the browser supports the Cache API
@@ -309,7 +309,12 @@ async function unZipFunction(zip, mapID) {
   mapInput.style.display = 'none';
   startButton.style.display = 'none';
   downloadPercent.style.display = 'none';
-  skinDropdown.style.display = 'none';
+  settingsButton.style.display='none'
+  if(settingsOpen){
+    settingsButton.style.transform = "rotate(0deg)"; 
+    settingsMenu.style.right = "-500px"
+    settingsOpen = false;
+  }
   gameDiv.style.display = 'block';
   window.hitValue = 0;
   window.totalNotes = 0;
@@ -450,7 +455,7 @@ async function unZipFunction(zip, mapID) {
   const imageIndex = files.findIndex(file => file.filename.toLowerCase() === imageName.toLowerCase());
   document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
   //STARTS THE CHART
-  audio.volume = window.volume;
+  audio.volume = masterVolume;
   mapStart();
 }
 

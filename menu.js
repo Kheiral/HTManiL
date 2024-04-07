@@ -100,8 +100,8 @@ async function generateButtons() {
     });
 }
 
-var settingsButton = document.getElementById("settings-btn");
-var settingsMenu = document.getElementById("settings-menu");
+const settingsButton = document.getElementById("settings-btn");
+const settingsMenu = document.getElementById("settings-menu");
 var settingsOpen = false;
 var editingSetting = false;
 
