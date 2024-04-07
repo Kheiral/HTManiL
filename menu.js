@@ -13,7 +13,8 @@ caches.open('mapCache').then((cache) => {
                 // Convert the JSON object to a map
                 jsonData.forEach(obj => {
                     beatmapInfoMap.set(obj.key, obj.value);
-                });            
+                });
+                console.log(beatmapInfoMap);
                 generateButtons();
             });
         }
