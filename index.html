@@ -1,68 +1,96 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>HTManiL</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body class="combo-font">
-    <div id="map-input">
-      <input id="map-id-input" placeholder="Beatmap URL or ID">
-      <button onclick="retrieveMapInfo()" id="start-button">Import</button>
-      <span id="download-percent" style="color:white;"></span>
-    </div>
-    <div id="song-selector">
-      
-    </div>
-    <div id="dif-selector">
-      <!-- Difficulties will be added here dynamically -->
-    </div>
-    <select id="skin-dropdown"></select>
-    <span id="fps-counter" class="main-font"></span>
-    <div id="pause-screen">
-      <button id="resume-button" class="main-font">Resume</button>
-      <button id="retry-button" class="main-font">Retry</button>
-      <button id="quit-button" class="main-font">Quit</button>
-    </div>
-    <span id="score" class="score-font"></span>
-    <div id="game" style="display:block">
-      <div id="playarea">
-        <div id="overlay">
-          <div id="progress-bar"></div>
-          <div id="top-container">
-            <span id="accuracy" class="score-font"></span>
-          </div>
-          <div id="user-vars" class="main-font">
-            <div id="scroll-speed"></div>
-            <div id="offset"></div>
-          </div>
-          <div id="ur-bar">
-            <!-- UR elements will be added here dynamically -->
-          </div>
-          <span id="combo" class="combo-font"></span>
-          <span id="judgement" class="main-font"></span>
-          <div id="line"></div>
-        </div>
-        <div id="container">
-            <!-- Note elements will be added here dynamically -->
-            <div class="column" id="col1"></div>
-            <div class="column" id="col2"></div>
-            <div class="column" id="col3"></div>
-            <div class="column" id="col4"></div>
-        </div>
-      </div>
-      <div id="hit-count-container" >
-        <div id="user-ratio" class="score-font">1.00:1</div>
-        <div id="_320-count" class="score-font">0</div>
-        <div id="_300-count" class="score-font">0</div>
-        <div id="_200-count" class="score-font">0</div>
-        <div id="_100-count" class="score-font">0</div>
-        <div id="_50-count" class="score-font">0</div>
-        <div id="_0-count" class="score-font">0</div>
+
+<head>
+  <title>HTManiL</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="combo-font">
+  <div id="map-input">
+    <input id="map-id-input" placeholder="Beatmap URL or ID">
+    <button onclick="retrieveMapInfo()" id="start-button">Import</button>
+    <span id="download-percent" style="color:white;"></span>
+  </div>
+  <img id="settings-btn" class="svg" src="assets/cog-outline.svg">
+  <div id="settings-menu">
+    <div id="keybinds" class="setting">
+      <label for="keybinds">Keybinds:</label>
+      <div id="keybind-container">
+        <input id="key1" class="keybind-input" maxlength="1"></input>
+        <input id="key2" class="keybind-input" maxlength="1"></input>
+        <input id="key3" class="keybind-input" maxlength="1"></input>
+        <input id="key4" class="keybind-input" maxlength="1"></input>
       </div>
     </div>
-    <script src="jszip.min.js"></script>
-    <script src="menu.js"></script>
-    <script src="script.js"></script>
-    <script src="skin_selector.js"></script>
-  </body>
+    <div id="volume" class="setting">
+      <label for="volume">Volume:</label>
+      <input type="range" id="master-volume" name="master-volume" min="0" max="100" value="95">
+    </div>
+    <div id="background-dim" class="setting">
+      <label for="background-dim-slider">Background Dim:</label>
+      <input type="range" id="background-dim-slider" name="background-dim-slider" min="0" max="100" value="95">
+    </div>
+    <div>
+      <label for="skin-dropdown">Skin:</label>
+      <select id="skin-dropdown"></select>
+    </div>
+    <div id="toggles" class="setting">
+    </div>
+  </div>
+  <div id="song-selector">
+
+  </div>
+  <div id="dif-selector">
+    <!-- Difficulties will be added here dynamically -->
+  </div>
+  <span id="fps-counter" class="main-font"></span>
+  <div id="pause-screen">
+    <button id="resume-button" class="main-font">Resume</button>
+    <button id="retry-button" class="main-font">Retry</button>
+    <button id="quit-button" class="main-font">Quit</button>
+  </div>
+  <span id="score" class="score-font"></span>
+  <div id="game" style="display:block">
+    <div id="playarea">
+      <div id="overlay">
+        <div id="progress-bar"></div>
+        <div id="top-container">
+          <span id="accuracy" class="score-font"></span>
+        </div>
+        <div id="user-vars" class="main-font">
+          <div id="scroll-speed"></div>
+          <div id="offset"></div>
+        </div>
+        <div id="ur-bar">
+          <!-- UR elements will be added here dynamically -->
+        </div>
+        <span id="combo" class="combo-font"></span>
+        <span id="judgement" class="main-font"></span>
+        <div id="line"></div>
+      </div>
+      <div id="container">
+        <!-- Note elements will be added here dynamically -->
+        <div class="column" id="col1"></div>
+        <div class="column" id="col2"></div>
+        <div class="column" id="col3"></div>
+        <div class="column" id="col4"></div>
+      </div>
+    </div>
+    <div id="hit-count-container">
+      <div id="user-ratio" class="score-font">1.00:1</div>
+      <div id="_320-count" class="score-font">0</div>
+      <div id="_300-count" class="score-font">0</div>
+      <div id="_200-count" class="score-font">0</div>
+      <div id="_100-count" class="score-font">0</div>
+      <div id="_50-count" class="score-font">0</div>
+      <div id="_0-count" class="score-font">0</div>
+    </div>
+  </div>
+  <script src="jszip.min.js"></script>
+  <script src="menu.js"></script>
+  <script src="script.js"></script>
+  <script src="skin_selector.js"></script>
+</body>
+
 </html>

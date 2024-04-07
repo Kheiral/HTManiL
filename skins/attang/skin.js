@@ -22,7 +22,6 @@ window.styleVars = {
 
 	//FACTOR VALUES
 
-	"backgroundDim": 0.95, 
 	"judgeTextPopFactor": 1.25,
 	"judgementLineOpacity": 0.1,
 

@@ -42,6 +42,10 @@ let scrollSpeedVar
 let scrollSpeed
 let visualOffset
 let audioOffset
+keyBinds = []
+let keyToColumnMap
+let backgroundDim
+let masterVolume
 
 function readFromCache() {
   // Check if the browser supports the Cache API
@@ -60,8 +64,14 @@ function readFromCache() {
           scrollSpeed = 2.8; // pixels per millisecond
           visualOffset = 0;
           audioOffset = 0;
-          writeToCache();
-          throw new Error('No data found in cache');
+          keyBinds[0] = 'z';
+          keyBinds[1] = 'x';
+          keyBinds[2] = '.';
+          keyBinds[3] = '/';
+          backgroundDim = 0.95;
+          masterVolume = 0.05
+          rebindKeys();
+          console.warn('No data found in userVars cache');
         }
       })
       .then((userVars) => {
@@ -70,17 +80,39 @@ function readFromCache() {
         scrollSpeed = userVars.scrollSpeed;
         visualOffset = userVars.visualOffset;
         audioOffset = userVars.audioOffset;
-
+        keyBinds[0] = userVars.keyBinds[0];
+        keyBinds[1] = userVars.keyBinds[1];
+        keyBinds[2] = userVars.keyBinds[2];
+        keyBinds[3] = userVars.keyBinds[3];
+        backgroundDim = userVars.backgroundDim;
+        masterVolume = userVars.masterVolume;
+        rebindKeys();
         // Do something with the user variables
         console.log('Scroll Speed Var:', scrollSpeedVar);
         console.log('Scroll Speed:', scrollSpeed);
         console.log('Visual Offset:', visualOffset);
         console.log('Audio Offset:', audioOffset);
+        console.log('Keybinds: ' + keyBinds[0] + keyBinds[1] + keyBinds[2] + keyBinds[3]);
       })
       .catch((error) => {
         console.error('Failed to read from cache:', error);
       });
   }
+}
+
+function rebindKeys(){
+  keyToColumnMap = {
+    [keyBinds[0]]: 1,
+    [keyBinds[1]]: 2,
+    [keyBinds[2]]: 3,
+    [keyBinds[3]]: 4
+  };
+  console.log(keyToColumnMap);
+  document.getElementById("key1").value = keyBinds[0];
+  document.getElementById("key2").value = keyBinds[1];
+  document.getElementById("key3").value = keyBinds[2];
+  document.getElementById("key4").value = keyBinds[3];
+  writeToCache();
 }
 
 function writeToCache() {
@@ -94,7 +126,10 @@ function writeToCache() {
           scrollSpeedVar,
           scrollSpeed,
           visualOffset,
-          audioOffset
+          audioOffset,
+          keyBinds,
+          backgroundDim,
+          masterVolume,
         };
         const response = new Response(JSON.stringify(userVars));
         cache.put('userData', response);
@@ -142,7 +177,6 @@ function loadSkinStyle() {
     scoreText.style.fontSize = window.styleVars.scoreTextSize
     urBar.style.height = window.styleVars.urBarHeight
 
-    window.backgroundDim = window.styleVars.backgroundDim
     judgementLine.style.opacity = window.styleVars.judgementLineOpacity
 
     urBar.style.top = window.styleVars.urBarOffset_Y
@@ -413,9 +447,9 @@ async function unZipFunction(zip, mapID) {
     //console.log('BG image: '+imageName);
   }
   const imageIndex = files.findIndex(file => file.filename.toLowerCase() === imageName.toLowerCase());
-  document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${window.backgroundDim}), rgba(0,0,0,${window.backgroundDim})), url(${files[imageIndex].file})`;
+  document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
   //STARTS THE CHART
-  audio.volume = 0.05;
+  audio.volume = window.volume;
   mapStart();
 }
 
@@ -784,13 +818,6 @@ function judgeTextAnimate() {
     judgement.style.transition = "opacity 0.1s";
   }, 500);
 }
-
-const keyToColumnMap = {
-  'z': 1,
-  'x': 2,
-  '.': 3,
-  '/': 4
-};
 
 document.addEventListener('keydown', function (event) {
   const keyPressed = event.key.toLowerCase();

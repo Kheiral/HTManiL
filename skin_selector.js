@@ -75,7 +75,7 @@ caches.open(cacheName).then((cache) => {
         }
       });
     } else {
-      console.warn('Cache is empty');
+      console.warn('No data found in skin cache');
     }
   }).catch((error) => {
     console.error('Error retrieving cache:', error);

@@ -8,20 +8,23 @@ caches.open('mapCache').then((cache) => {
     // Retrieve the cached response associated with the key
     cache.match('mapData').then((response) => {
         // Convert the response to JSON
-        if(response){
+        if (response) {
             response.json().then((jsonData) => {
                 // Convert the JSON object to a map
                 var arrayData = Object.values(jsonData);
                 arrayData.forEach(obj => {
-                    beatmapInfoMap.set(obj[0], obj[1]);
-                    console.log(obj);
+                    if (isInteger(obj[0])) {
+                        beatmapInfoMap.set(obj[0], obj[1]);
+                    }
+                    else {
+                        console.warn('Error with map cache');
+                    }
                 });
-                console.log(beatmapInfoMap);
                 generateButtons();
             });
         }
-        else{
-            console.log('No data found in the cache or cache name does not exist.');
+        else {
+            console.warn('No data found in map cache');
         }
     });
 });
@@ -31,15 +34,15 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
     const match = mapInput.value.match(regex);
     mapInput.value = '';
     if (match) {
-      setID = match[1]
-      console.log("Isolated ID:", setID);
-    } else if(Number.isInteger(parseInt(mapInput.value, 10))){
-      setID = mapInput.value
+        setID = match[1]
+        console.log("Isolated ID:", setID);
+    } else if (Number.isInteger(parseInt(mapInput.value, 10))) {
+        setID = mapInput.value
     }
-    else{
-      console.log("No match found.");
+    else {
+        console.log("No match found.");
     }
-    if(setID){
+    if (setID) {
         infoUrl = 'https://api.chimu.moe/v1/set/' + setID
         const infoResponse = await fetch(infoUrl);
         if (!infoResponse.ok) {
@@ -47,26 +50,28 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
         }
         const infoJson = await infoResponse.json();
         infoJson.ChildrenBeatmaps.forEach(obj => {
-            const beatmapMapId = obj.BeatmapId;
-            // Exclude the BeatmapId from the value object
-            const { BeatmapId, ...rest } = obj;
-            rest.Title=infoJson.Title_Unicode
-            rest.Artist=infoJson.Artist_Unicode
-            rest.Creator=infoJson.creator
-            // Set the BeatmapId as the key and the rest of the data as the value
-            beatmapInfoMap.set(beatmapMapId, rest);
-            const beatmapInfoArray = Array.from(beatmapInfoMap);
-            const jsonData = JSON.stringify(beatmapInfoArray);
-            caches.open('mapCache').then(cache => {
-                // Store the JSON data in the cache
-                cache.put('mapData', new Response(jsonData));
-            });
+            if (obj.CS == 4) {
+                const beatmapMapId = obj.BeatmapId;
+                // Exclude the BeatmapId from the value object
+                const { BeatmapId, ...rest } = obj;
+                rest.Title = infoJson.Title_Unicode
+                rest.Artist = infoJson.Artist_Unicode
+                rest.Creator = infoJson.creator
+                // Set the BeatmapId as the key and the rest of the data as the value
+                beatmapInfoMap.set(beatmapMapId, rest);
+                const beatmapInfoArray = Array.from(beatmapInfoMap);
+                const jsonData = JSON.stringify(beatmapInfoArray);
+                caches.open('mapCache').then(cache => {
+                    // Store the JSON data in the cache
+                    cache.put('mapData', new Response(jsonData));
+                });
+            }
         });
         generateButtons();
     }
 }
 
-async function generateButtons(){
+async function generateButtons() {
     while (difSelector.firstChild) {
         difSelector.removeChild(difSelector.firstChild);
     }
@@ -74,11 +79,11 @@ async function generateButtons(){
     beatmapArray.sort((a, b) => {
         return a[1].DifficultyRating - b[1].DifficultyRating;
     });
-    beatmapArray.forEach((element)=>{
+    beatmapArray.forEach((element) => {
         const button = document.createElement('button');
         button.id = element[0]
-        button.textContent = element[1].Title +'\n'+element[1].DiffName+' ('+element[1].DifficultyRating+')'
-        
+        button.textContent = element[1].Title + '\n' + element[1].DiffName + ' (' + element[1].DifficultyRating + ')'
+
         difSelector.appendChild(button);
     })
     difButtons = difSelector.querySelectorAll("button");
@@ -94,3 +99,63 @@ async function generateButtons(){
         });
     });
 }
+
+var settingsButton = document.getElementById("settings-btn");
+var settingsMenu = document.getElementById("settings-menu");
+var settingsOpen = false;
+
+settingsButton.addEventListener("click", function() {
+    if(!settingsOpen){
+        this.style.transform = "rotate(-135deg)";
+        settingsMenu.style.right = "0px"
+        settingsOpen = true;
+    }
+    else{
+        this.style.transform = "rotate(0deg)"; 
+        settingsMenu.style.right = "-500px"
+        settingsOpen = false;
+    }
+});
+
+const keybindInputBoxes = document.querySelectorAll('.keybind-input');
+
+// Add event listeners to each textbox
+keybindInputBoxes.forEach((textbox, index) => {
+    textbox.disabled = true;
+    textbox.addEventListener('input', function() {
+      if (textbox.value.length >= 1) {
+        // If the current textbox is filled up, disable it and focus on the next one
+        keyBinds[index]=textbox.value
+        console.log(keyBinds);
+        textbox.disabled = true;
+        const nextTextboxIndex = index + 1;
+        if (nextTextboxIndex < keybindInputBoxes.length) {
+        keybindInputBoxes[nextTextboxIndex].disabled = false;
+          keybindInputBoxes[nextTextboxIndex].focus();
+        } else {
+            rebindKeys(); 
+        }
+      }
+    });
+  });
+
+const keybindDiv = document.getElementById('keybinds')
+
+keybindDiv.addEventListener('click', function(){
+    keyBinds=["","","",""];
+    rebindKeys();
+    keybindInputBoxes[0].disabled = false;
+    keybindInputBoxes[0].focus();
+});
+
+const backgroundDimSlider = document.getElementById('background-dim-slider');
+backgroundDimSlider.addEventListener('input', function() {
+  backgroundDim = backgroundDimSlider.value/100;
+  writeToCache();
+});
+
+const volumeSlider = document.getElementById('volume-slider');
+volumeSlider.addEventListener('input', function() {
+  masterVolume = volumeSlider.value/100;
+  writeToCache();
+});
