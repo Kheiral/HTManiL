@@ -72,6 +72,8 @@ function readFromCache() {
           masterVolume = 0.05
           rebindKeys();
           console.warn('No data found in userVars cache');
+          backgroundDimSlider.value=backgroundDim*100
+          masterVolumeSlider.value=masterVolume*100
         }
       })
       .then((userVars) => {
@@ -80,13 +82,15 @@ function readFromCache() {
         scrollSpeed = userVars.scrollSpeed;
         visualOffset = userVars.visualOffset;
         audioOffset = userVars.audioOffset;
-        userVars.keyBinds = [];
+        userVars.keyBinds = ['','','',''];
         keyBinds[0] = userVars.keyBinds[0];
         keyBinds[1] = userVars.keyBinds[1];
         keyBinds[2] = userVars.keyBinds[2];
         keyBinds[3] = userVars.keyBinds[3];
         backgroundDim = userVars.backgroundDim;
         masterVolume = userVars.masterVolume;
+        backgroundDimSlider.value=backgroundDim*100
+        masterVolumeSlider.value=masterVolume*100
         rebindKeys();
         // Do something with the user variables
         console.log('Scroll Speed Var:', scrollSpeedVar);
