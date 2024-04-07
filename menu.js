@@ -11,8 +11,7 @@ caches.open('mapCache').then((cache) => {
         if(response){
             response.json().then((jsonData) => {
                 // Convert the JSON object to a map
-                var jsonArray = JSON.parse(jsonData);
-                var arrayData = Object.values(jsonArray);
+                var arrayData = Object.values(jsonData);
                 console.log(arrayData);
                 arrayData.forEach(obj => {
                     beatmapInfoMap.set(obj.key, obj.value);
