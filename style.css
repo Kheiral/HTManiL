@@ -354,8 +354,7 @@ body > *{
 #keybind-container{
     display:flex;
     justify-content: center;
-    z-index: 5;
-    cursor:pointer;
+    z-index: 4;
 }
 #keybind-container>*{
     font-size: 30px;
@@ -368,14 +367,28 @@ body > *{
     caret-color: transparent;
     border-color:transparent;
     cursor:pointer;
+    z-index: 0;
 }
 
-.keybind-input:enabled {
-    opacity: 1;
-    background-color: #50DFFD;
+#keybinds{
+    z-index: 5;
+    cursor:pointer;
 }
 
-.keybind-input:disabled {
+#keybind-overlay{
+    z-index: 10;
+    cursor:pointer;
+    height:100%;
+}
+
+
+.keybind-input:read-only {
     opacity: 1;
     background-color: #eee;
+}
+
+.keybind-input{
+    z-index:0;
+    opacity: 1;
+    background-color: #75CBDD;
 }

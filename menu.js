@@ -13,7 +13,7 @@ caches.open('mapCache').then((cache) => {
                 // Convert the JSON object to a map
                 var arrayData = Object.values(jsonData);
                 arrayData.forEach(obj => {
-                    if (isInteger(obj[0])) {
+                    if (obj[0] && isInteger(obj[0])) {
                         beatmapInfoMap.set(obj[0], obj[1]);
                     }
                     else {
@@ -103,6 +103,7 @@ async function generateButtons() {
 var settingsButton = document.getElementById("settings-btn");
 var settingsMenu = document.getElementById("settings-menu");
 var settingsOpen = false;
+var editingSetting = false;
 
 settingsButton.addEventListener("click", function() {
     if(!settingsOpen){
@@ -110,7 +111,7 @@ settingsButton.addEventListener("click", function() {
         settingsMenu.style.right = "0px"
         settingsOpen = true;
     }
-    else{
+    else if(!editingSetting){
         this.style.transform = "rotate(0deg)"; 
         settingsMenu.style.right = "-500px"
         settingsOpen = false;
@@ -121,30 +122,37 @@ const keybindInputBoxes = document.querySelectorAll('.keybind-input');
 
 // Add event listeners to each textbox
 keybindInputBoxes.forEach((textbox, index) => {
-    textbox.disabled = true;
     textbox.addEventListener('input', function() {
-      if (textbox.value.length >= 1) {
+        if (textbox.value.length >= 1) {
         // If the current textbox is filled up, disable it and focus on the next one
         keyBinds[index]=textbox.value
         console.log(keyBinds);
-        textbox.disabled = true;
+        textbox.readOnly = true;
         const nextTextboxIndex = index + 1;
         if (nextTextboxIndex < keybindInputBoxes.length) {
-        keybindInputBoxes[nextTextboxIndex].disabled = false;
-          keybindInputBoxes[nextTextboxIndex].focus();
+        keybindInputBoxes[nextTextboxIndex].readOnly = false;
+        keybindInputBoxes[nextTextboxIndex].focus();
         } else {
+            editingSetting = false;
+            textbox.blur();
             rebindKeys(); 
         }
-      }
+        }
     });
+});
+
+  window.addEventListener('mousedown', function(event) {
+    if(editingSetting){
+        event.preventDefault();
+    }
   });
 
-const keybindDiv = document.getElementById('keybinds')
-
+const keybindDiv = document.getElementById('keybinds');
 keybindDiv.addEventListener('click', function(){
     keyBinds=["","","",""];
     rebindKeys();
-    keybindInputBoxes[0].disabled = false;
+    editingSetting = true;
+    keybindInputBoxes[0].readOnly = false;
     keybindInputBoxes[0].focus();
 });
 
@@ -154,8 +162,8 @@ backgroundDimSlider.addEventListener('input', function() {
   writeToCache();
 });
 
-const volumeSlider = document.getElementById('volume-slider');
-volumeSlider.addEventListener('input', function() {
-  masterVolume = volumeSlider.value/100;
+const masterVolumeSlider = document.getElementById('master-volume');
+masterVolumeSlider.addEventListener('input', function() {
+  masterVolume = masterVolumeSlider.value/100;
   writeToCache();
 });

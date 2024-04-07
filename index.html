@@ -8,7 +8,7 @@
 
 <body class="combo-font">
   <div id="map-input">
-    <input id="map-id-input" placeholder="Beatmap URL or ID">
+    <input id="map-id-input" placeholder="Beatmap URL or ID" autocomplete="off">
     <button onclick="retrieveMapInfo()" id="start-button">Import</button>
     <span id="download-percent" style="color:white;"></span>
   </div>
@@ -17,10 +17,10 @@
     <div id="keybinds" class="setting">
       <label for="keybinds">Keybinds:</label>
       <div id="keybind-container">
-        <input id="key1" class="keybind-input" maxlength="1"></input>
-        <input id="key2" class="keybind-input" maxlength="1"></input>
-        <input id="key3" class="keybind-input" maxlength="1"></input>
-        <input id="key4" class="keybind-input" maxlength="1"></input>
+        <input id="key1" class="keybind-input" autocomplete="off" readonly></input>
+        <input id="key2" class="keybind-input" autocomplete="off" readonly></input>
+        <input id="key3" class="keybind-input" autocomplete="off" readonly></input>
+        <input id="key4" class="keybind-input" autocomplete="off" readonly></input>
       </div>
     </div>
     <div id="volume" class="setting">
@@ -31,7 +31,7 @@
       <label for="background-dim-slider">Background Dim:</label>
       <input type="range" id="background-dim-slider" name="background-dim-slider" min="0" max="100" value="95">
     </div>
-    <div>
+    <div class="setting">
       <label for="skin-dropdown">Skin:</label>
       <select id="skin-dropdown"></select>
     </div>
