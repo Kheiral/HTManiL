@@ -14,7 +14,7 @@ caches.open('mapCache').then((cache) => {
                 var arrayData = Object.values(jsonData);
                 console.log(arrayData);
                 arrayData.forEach(obj => {
-                    if (isInteger(obj[0])) {
+                    if (Number.isInteger(obj[0])) {
                         beatmapInfoMap.set(obj[0], obj[1]);
                     }
                     else {
