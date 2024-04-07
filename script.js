@@ -82,7 +82,6 @@ function readFromCache() {
         scrollSpeed = userVars.scrollSpeed;
         visualOffset = userVars.visualOffset;
         audioOffset = userVars.audioOffset;
-        userVars.keyBinds = ['','','',''];
         keyBinds[0] = userVars.keyBinds[0];
         keyBinds[1] = userVars.keyBinds[1];
         keyBinds[2] = userVars.keyBinds[2];
