@@ -10,11 +10,10 @@ caches.open('mapCache').then((cache) => {
         // Convert the response to JSON
         if(response){
             response.json().then((jsonData) => {
-                console.log(jsonData);
                 // Convert the JSON object to a map
-                const mapData = new Map(Object.entries(jsonData));
-                beatmapInfoMap = mapData;
-                console.log(beatmapInfoMap);
+                jsonData.forEach(obj => {
+                    beatmapInfoMap.set(obj.key, obj.value);
+                });            
                 generateButtons();
             });
         }
