@@ -11,8 +11,12 @@ caches.open('mapCache').then((cache) => {
         if(response){
             response.json().then((jsonData) => {
                 // Convert the JSON object to a map
-                jsonData.forEach(obj => {
+                var jsonArray = JSON.parse(jsonData);
+                var arrayData = Object.values(jsonArray);
+                console.log(arrayData);
+                arrayData.forEach(obj => {
                     beatmapInfoMap.set(obj.key, obj.value);
+                    console.log(obj.key);
                 });
                 console.log(beatmapInfoMap);
                 generateButtons();
@@ -72,7 +76,6 @@ async function generateButtons(){
     beatmapArray.sort((a, b) => {
         return a[1].DifficultyRating - b[1].DifficultyRating;
     });
-    console.log(beatmapArray);
     beatmapArray.forEach((element)=>{
         const button = document.createElement('button');
         button.id = element[0]
