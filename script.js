@@ -111,7 +111,6 @@ function rebindKeys(){
     [keyBinds[2]]: 3,
     [keyBinds[3]]: 4
   };
-  console.log(keyToColumnMap);
   document.getElementById("key1").value = keyBinds[0];
   document.getElementById("key2").value = keyBinds[1];
   document.getElementById("key3").value = keyBinds[2];

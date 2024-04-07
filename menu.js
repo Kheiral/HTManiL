@@ -12,8 +12,9 @@ caches.open('mapCache').then((cache) => {
             response.json().then((jsonData) => {
                 // Convert the JSON object to a map
                 var arrayData = Object.values(jsonData);
+                console.log(arrayData);
                 arrayData.forEach(obj => {
-                    if (isInteger(obj[0]) && obj[0] != undefined) {
+                    if (isInteger(obj[0])) {
                         beatmapInfoMap.set(obj[0], obj[1]);
                     }
                     else {
@@ -126,7 +127,6 @@ keybindInputBoxes.forEach((textbox, index) => {
         if (textbox.value.length >= 1) {
         // If the current textbox is filled up, disable it and focus on the next one
         keyBinds[index]=textbox.value
-        console.log(keyBinds);
         textbox.readOnly = true;
         const nextTextboxIndex = index + 1;
         if (nextTextboxIndex < keybindInputBoxes.length) {
