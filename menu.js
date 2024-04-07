@@ -12,10 +12,9 @@ caches.open('mapCache').then((cache) => {
             response.json().then((jsonData) => {
                 // Convert the JSON object to a map
                 var arrayData = Object.values(jsonData);
-                console.log(arrayData);
                 arrayData.forEach(obj => {
-                    beatmapInfoMap.set(obj.key, obj.value);
-                    console.log(obj.key);
+                    beatmapInfoMap.set(obj[0], obj[1]);
+                    console.log(obj);
                 });
                 console.log(beatmapInfoMap);
                 generateButtons();
