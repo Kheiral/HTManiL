@@ -1,6 +1,7 @@
 const difSelector = document.getElementById('dif-selector');
 difButtons = difSelector.querySelectorAll("button");
 beatmapInfoMap = new Map();
+var currentSelectedSR = '';
 
 console.log('menu script running')
 
@@ -44,20 +45,21 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
         console.log("No match found.");
     }
     if (setID) {
-        infoUrl = 'https://api.chimu.moe/v1/set/' + setID
+        infoUrl = 'https://api.osu.direct/s/' + setID
         const infoResponse = await fetch(infoUrl);
         if (!infoResponse.ok) {
             throw new Error('Info network response was not ok');
         }
         const infoJson = await infoResponse.json();
+        console.log(infoJson);
         infoJson.ChildrenBeatmaps.forEach(obj => {
             if (obj.CS == 4) {
-                const beatmapMapId = obj.BeatmapId;
+                const beatmapMapId = obj.BeatmapID;
                 // Exclude the BeatmapId from the value object
                 const { BeatmapId, ...rest } = obj;
-                rest.Title = infoJson.Title_Unicode
-                rest.Artist = infoJson.Artist_Unicode
-                rest.Creator = infoJson.creator
+                rest.Title = infoJson.Title
+                rest.Artist = infoJson.Artist
+                rest.Creator = infoJson.Creator
                 // Set the BeatmapId as the key and the rest of the data as the value
                 beatmapInfoMap.set(beatmapMapId, rest);
                 const beatmapInfoArray = Array.from(beatmapInfoMap);
@@ -68,6 +70,7 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
                 });
             }
         });
+        console.log(beatmapInfoMap);
         generateButtons();
     }
 }
@@ -83,8 +86,32 @@ async function generateButtons() {
     beatmapArray.forEach((element) => {
         const button = document.createElement('button');
         button.id = element[0]
-        button.textContent = element[1].Title + '\n' + element[1].DiffName + ' (' + element[1].DifficultyRating + ')'
-
+        const difRounded = Math.floor(element[1].DifficultyRating)
+        const currentDiff = difRounded > 10 ? '10star' : difRounded + 'star';
+        const currentDiffButton = document.getElementById('Button'+currentDiff);
+        currentDiffButton.classList.remove('disabledDiffButton');
+        currentDiffButton.classList.add('enabledDiffButton')
+        const titleDiv = document.createElement('div');
+        const diffNameDiv = document.createElement('div');
+        const artistDiv = document.createElement('div');
+        const diffInfoContainer = document.createElement('div');
+        titleDiv.classList.add('diffTitle');
+        diffNameDiv.classList.add('diffText');
+        artistDiv.classList.add('diffArtist')
+        diffInfoContainer.classList.add('diffInfoContainer');
+        artistDiv.textContent = element[1].Artist;
+        titleDiv.textContent = element[1].Title;
+        diffNameDiv.textContent = element[1].DiffName + ' (' + Math.floor(element[1].DifficultyRating*100)/100 + ')';
+        button.appendChild(titleDiv);
+        diffInfoContainer.appendChild(artistDiv);
+        diffInfoContainer.appendChild(diffNameDiv);
+        button.appendChild(diffInfoContainer)
+        button.classList.add(currentDiff);
+        button.classList.add('difficulty-button');
+        if(currentSelectedSR!=currentDiff){
+            button.style.display='none';
+        }
+        button.style.display='none';
         difSelector.appendChild(button);
     })
     difButtons = difSelector.querySelectorAll("button");
@@ -99,6 +126,21 @@ async function generateButtons() {
             });
         });
     });
+}
+
+async function changeDiffSelection(buttonId){
+    var newSelectedSR = buttonId.match(/\d+star/)[0];
+    if(currentSelectedSR!=newSelectedSR){
+        var buttonsToHide = document.getElementsByClassName(currentSelectedSR);
+        for (var i = 0; i < buttonsToHide.length; i++) {
+            buttonsToHide[i].style.display = 'none';
+        }
+        var buttonsToShow = document.getElementsByClassName(newSelectedSR);
+        for (var i = 0; i < buttonsToShow.length; i++) {
+            buttonsToShow[i].style.display = 'flex';
+        }
+        currentSelectedSR=newSelectedSR;
+    }
 }
 
 const settingsButton = document.getElementById("settings-btn");

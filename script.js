@@ -19,10 +19,12 @@ const _300countText = document.getElementById('_300-count');
 const _320countText = document.getElementById('_320-count');
 const ratioText = document.getElementById('user-ratio');
 const mapInput = document.getElementById("map-id-input");
+const mapSelectionArea = document.getElementById('map-select');
 const startButton = document.getElementById("start-button");
 const urBar = document.getElementById('ur-bar');
 const playArea = document.getElementById('playarea');
 const gameDiv = document.getElementById('game');
+const downloadFilled = document.getElementById('download-filled');
 let frameCounter = 0;
 let initialTiming;
 let initialOffsetPX;
@@ -239,11 +241,12 @@ function onWindowResize() {
 
 async function downloadFile(mapID) {//This actually downloads and parses the maps
   selectedMap = beatmapInfoMap.get(mapID);
-  mapUrl = 'https://api.chimu.moe/v1/download/' + selectedMap.ParentSetId + '?n=1'
+  mapUrl = 'https://api.nerinyan.moe/d/' + selectedMap.ParentSetID +'/#/?nh=true&nv=true&nsb=true'
   try {
     const response = await fetch(mapUrl);
     const contentLength = response.headers.get('content-length');
     const totalSize = contentLength ? parseInt(contentLength, 10) : null;
+    console.log(response.headers);
     let loadedSize = 0;
     const reader = response.body.getReader();
     const chunks = [];
@@ -261,6 +264,7 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
         if (totalSize) {
           const progress = Math.round(loadedSize / totalSize * 100);
           downloadPercent.textContent = `Downloaded ${progress}%`;
+          downloadFilled.style.width = `${progress}%`
         }
       }
 
@@ -307,10 +311,8 @@ async function unZipFunction(zip, mapID) {
       }
     }
   }
-
-  mapInput.style.display = 'none';
+  mapSelectionArea.style.display = 'none';
   startButton.style.display = 'none';
-  downloadPercent.style.display = 'none';
   settingsButton.style.display='none'
   if(settingsOpen){
     settingsButton.style.transform = "rotate(0deg)"; 

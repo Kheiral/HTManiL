@@ -32,6 +32,13 @@ body > *{
     font-weight: normal;
     font-style: normal;
 }
+
+@font-face{
+    font-family: 'UI';
+    src: url('./fonts/Metropolis-SemiBold.ttf') format('truetype');
+    font-weight: normal;
+    font-style:normal;
+}
 .combo-font{
     font-family: 'Combo';
 }
@@ -41,22 +48,54 @@ body > *{
 .main-font{
     font-family: 'Main';
 }
-
-#map-input[type=number]::-webkit-inner-spin-button, 
-#map-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
-  display: none;
+.ui-font{
+    font-family: 'UI';
+}
+.ui-font * {
+    font-family: inherit;
 }
 
-#map-input{
+#map-select{
+    width:30%;
     user-select: auto;
+    padding:30px;
+    display:inline-block;
+}
+
+#map-select > *{
+    border:0;
+    margin-bottom: 25px;
+    padding:0;
+}
+
+#map-id-input{
+    font-size: 30px;
+    box-sizing: border-box;
+    padding:10px;
+    width:75%;
+    height: 50px;
+    overflow: hidden;
+    outline: none;
+}
+
+#start-button{
+    right:0;
+    width:25%;
+    line-height: 50px;
+    font-size: 30px;
+    height: 50px;
+    background-color: #19ff62;
+    transform:skew(-20deg);
+    text-align: center;
+    margin-left:-15px;
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 #dif-selector{
     display: flex;
     flex-direction: column;
-    width: 10%;
+    width: 30%;
     height: 100%;
 }
 
@@ -118,6 +157,7 @@ body > *{
 }
 
 #score{
+    font-family: "Score";
     top:0;
     right:0;
     color: white;
@@ -172,6 +212,7 @@ body > *{
 }
 
 #combo{
+    font-family: "Combo";
     position: absolute;
     font-size: 50px;
     color: rgb(234, 234, 234);
@@ -324,6 +365,7 @@ body > *{
 }
 
 #settings-menu{
+    font-family: 'UI';
     transition: right 0.5s ease;
     position: absolute;
     top:0px;
@@ -332,7 +374,7 @@ body > *{
     height: 100vh;
     z-index:1;
     background-color:rgba(0,0,0,0.8);
-    padding-top:50px;
+    padding-top:70px;
     color:white;
 }
 
@@ -383,7 +425,6 @@ body > *{
     height:100%;
 }
 
-
 .keybind-input:read-only {
     opacity: 1;
     background-color: #eee;
@@ -393,4 +434,94 @@ body > *{
     z-index:0;
     opacity: 1;
     background-color: #75CBDD;
+}
+
+#download-bar{
+    box-sizing: border-box;
+    width:100%;
+    background-color: #202020;
+    height:35px;
+    align-items: center;
+    position: relative;
+}
+
+#download-filled{
+    height: 100%;
+    background-color: #75CBDD;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 0;
+}
+
+#download-percent{
+    position: absolute;
+    left:15px;
+    color:white;
+    line-height: 35px;
+    z-index: 2;
+}
+
+#diff-selector-buttons{
+    width:100%;
+    display:flex;
+}
+
+#diff-selector-buttons > *{
+    flex-grow:1;
+    transform:skew(-20deg);
+    right:0;
+    transform:skew(-20deg);
+    text-align: center;
+    overflow: hidden;
+    border:none;
+    margin-left: 0px;
+    height: 50px;
+    font-size:20px;
+}
+
+.disabledDiffButton{
+    background: linear-gradient(to right, 
+    rgba(255, 255, 255, 0.5) 2%,
+    rgba(224, 250, 255, 0.5) 5%,
+    rgba(84, 138, 208, 0.5) 90%,
+    rgba(6, 12, 92, 0.5) 100%
+    );
+}
+.enabledDiffButton{
+    background: linear-gradient(to right, 
+    rgba(255, 255, 255, 1) 2%,
+    rgba(224, 250, 255, 1) 5%,
+    rgba(84, 138, 208, 1) 90%,
+    rgba(6, 12, 92, 1) 100%
+    );
+}
+
+#diff-selector-buttons > * > *{
+    transform:skew(20deg);
+}
+
+.difficulty-button{
+    height:50px;
+    margin:5px;
+}
+
+.diffTitle{
+    font-size: 40px;
+    padding:5px 15px 5px 0;
+}
+
+.diffInfoContainer{
+    display:flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.diffArtist{
+    font-size: 15px;
+}
+
+.diffText{
+    font-size: 25px;
 }

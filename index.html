@@ -6,11 +6,33 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="combo-font">
-  <div id="map-input">
+<body class="ui-font">
+  <div id="map-select">
     <input id="map-id-input" placeholder="Beatmap URL or ID" autocomplete="off">
-    <button onclick="retrieveMapInfo()" id="start-button">Import</button>
-    <span id="download-percent" style="color:white;"></span>
+    <button onclick="retrieveMapInfo()" id="start-button">
+      <div style="transform: skew(20deg)">Import</div>
+    </button>
+    <div id="download-bar">
+      <div id="download-percent"></div>
+      <div id="download-filled">
+  
+      </div>
+    </div>
+    <div id="diff-selector-buttons" style="display:flex">
+      <button id="Button1star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>1 Star</div></button>
+      <button id="Button2star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>2 Star</div></button>
+      <button id="Button3star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>3 Star</div></button>
+      <button id="Button4star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>4 Star</div></button>
+      <button id="Button5star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>5 Star</div></button>
+      <button id="Button6star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>6 Star</div></button>
+      <button id="Button7star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>7 Star</div></button>
+      <button id="Button8star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>8 Star</div></button>
+      <button id="Button9star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>9 Star</div></button>
+      <button id="Button10star" class="disabledDiffButton" onclick="changeDiffSelection(this.id)"><div>10+ Star</div></button>
+    </div>
+  </div>
+  <div id="dif-selector">
+    <!-- Difficulties will be added here dynamically -->
   </div>
   <img id="settings-btn" class="svg" src="assets/cog-outline.svg">
   <div id="settings-menu">
@@ -37,12 +59,6 @@
     </div>
     <div id="toggles" class="setting">
     </div>
-  </div>
-  <div id="song-selector">
-
-  </div>
-  <div id="dif-selector">
-    <!-- Difficulties will be added here dynamically -->
   </div>
   <span id="fps-counter" class="main-font"></span>
   <div id="pause-screen">
