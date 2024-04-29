@@ -251,6 +251,7 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
     const reader = response.body.getReader();
     const chunks = [];
     if (!response.ok) {
+      console.warn(response);
       throw new Error('Download network response was not ok');
     }
     else {
