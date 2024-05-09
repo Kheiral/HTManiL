@@ -101,16 +101,14 @@ async function generateButtons() {
         diffInfoContainer.classList.add('diffInfoContainer');
         artistDiv.textContent = element[1].Artist;
         titleDiv.textContent = element[1].Title;
-        diffNameDiv.textContent = element[1].DiffName + ' (' + Math.floor(element[1].DifficultyRating*100)/100 + ')';
+        diffNameDiv.textContent = element[1].DiffName + ' (' + Math.floor(element[1].DifficultyRating*100)/100 + ')'
+        //diffRatingDiv.textContent
         button.appendChild(titleDiv);
         diffInfoContainer.appendChild(artistDiv);
         diffInfoContainer.appendChild(diffNameDiv);
         button.appendChild(diffInfoContainer)
         button.classList.add(currentDiff);
         button.classList.add('difficulty-button');
-        if(currentSelectedSR!=currentDiff){
-            button.style.display='none';
-        }
         button.style.display='none';
         difSelector.appendChild(button);
     })
@@ -126,6 +124,7 @@ async function generateButtons() {
             });
         });
     });
+    changeDiffSelection(currentSelectedSR);
 }
 
 async function changeDiffSelection(buttonId){
