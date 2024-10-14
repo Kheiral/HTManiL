@@ -45,21 +45,21 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
         console.log("No match found.");
     }
     if (setID) {
-        infoUrl = 'https://api.osu.direct/s/' + setID
+        infoUrl = 'https://catboy.best/api/v2/s/' + setID
         const infoResponse = await fetch(infoUrl);
         if (!infoResponse.ok) {
             throw new Error('Info network response was not ok');
         }
         const infoJson = await infoResponse.json();
         console.log(infoJson);
-        infoJson.ChildrenBeatmaps.forEach(obj => {
+        infoJson.beatmaps.forEach(obj => {
             if (obj.CS == 4) {
                 const beatmapMapId = obj.BeatmapID;
                 // Exclude the BeatmapId from the value object
                 const { BeatmapId, ...rest } = obj;
-                rest.Title = infoJson.Title
-                rest.Artist = infoJson.Artist
-                rest.Creator = infoJson.Creator
+                rest.Title = infoJson.title
+                rest.Artist = infoJson.artist
+                rest.Creator = infoJson.creator
                 // Set the BeatmapId as the key and the rest of the data as the value
                 beatmapInfoMap.set(beatmapMapId, rest);
                 const beatmapInfoArray = Array.from(beatmapInfoMap);
@@ -81,12 +81,12 @@ async function generateButtons() {
     }
     const beatmapArray = Array.from(beatmapInfoMap);
     beatmapArray.sort((a, b) => {
-        return a[1].DifficultyRating - b[1].DifficultyRating;
+        return a[1].difficulty_rating - b[1].difficulty_rating;
     });
     beatmapArray.forEach((element) => {
         const button = document.createElement('button');
         button.id = element[0]
-        const difRounded = Math.floor(element[1].DifficultyRating)
+        const difRounded = Math.floor(element[1].difficulty_rating)
         const currentDiff = difRounded > 10 ? '10star' : difRounded + 'star';
         const currentDiffButton = document.getElementById('Button'+currentDiff);
         currentDiffButton.classList.remove('disabledDiffButton');
@@ -101,7 +101,7 @@ async function generateButtons() {
         diffInfoContainer.classList.add('diffInfoContainer');
         artistDiv.textContent = element[1].Artist;
         titleDiv.textContent = element[1].Title;
-        diffNameDiv.textContent = element[1].DiffName + ' (' + Math.floor(element[1].DifficultyRating*100)/100 + ')'
+        diffNameDiv.textContent = element[1].version + ' (' + Math.floor(element[1].difficulty_rating*100)/100 + ')'
         //diffRatingDiv.textContent
         button.appendChild(titleDiv);
         diffInfoContainer.appendChild(artistDiv);
