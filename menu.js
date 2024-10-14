@@ -55,7 +55,7 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
         infoJson.beatmaps.forEach(obj => {
             if (obj.cs == 4) {
                 console.log('im running')
-                const beatmapMapId = obj.BeatmapID;
+                const beatmapMapId = obj.id;
                 // Exclude the BeatmapId from the value object
                 const { BeatmapId, ...rest } = obj;
                 rest.Title = infoJson.title
