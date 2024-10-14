@@ -51,9 +51,10 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
             throw new Error('Info network response was not ok');
         }
         const infoJson = await infoResponse.json();
-        console.log(infoJson);
+        console.log(infoJson.beatmaps);
         infoJson.beatmaps.forEach(obj => {
-            if (obj.CS == 4) {
+            if (obj.cs == 4) {
+                console.log('im running')
                 const beatmapMapId = obj.BeatmapID;
                 // Exclude the BeatmapId from the value object
                 const { BeatmapId, ...rest } = obj;
