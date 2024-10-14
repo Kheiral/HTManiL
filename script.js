@@ -241,7 +241,7 @@ function onWindowResize() {
 
 async function downloadFile(mapID) {//This actually downloads and parses the maps
   selectedMap = beatmapInfoMap.get(mapID);
-  mapUrl = 'https://api.nerinyan.moe/d/' + selectedMap.ParentSetID +'?nh=true&nv=true&nsb=true'
+  mapUrl = 'https://api.nerinyan.moe/d/' + selectedMap.beatmapset_id +'?nh=true&nv=true&nsb=true'
   try {
     const response = await fetch(mapUrl);
     console.log(response.headers)
