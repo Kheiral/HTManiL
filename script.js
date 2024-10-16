@@ -281,6 +281,7 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
 
 async function unZipFunction(zip, mapID) {
   const files = [];
+  console.log(zip.files);
   await Promise.all(
     Object.keys(zip.files).map(async (filename) => {
       if (filename.endsWith(".osu")) {
@@ -288,7 +289,6 @@ async function unZipFunction(zip, mapID) {
         finalFile = file.replace(/\r\n/g, "\n");
       }
       else {
-        console.log(filename);
         const file = await zip.file(filename).async("arraybuffer");
         finalFile = URL.createObjectURL(new Blob([file]));
       }
