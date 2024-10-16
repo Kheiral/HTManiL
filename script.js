@@ -455,7 +455,7 @@ async function unZipFunction(zip, mapID) {
   if (startIndex !== -1) {
     const line = eventLines[startIndex + 1]
     imageName = line.split(',')[2].replace(/"/g, '');
-    //console.log('BG image: '+imageName);
+    console.log('BG image: '+imageName);
   }
   const imageIndex = files.findIndex(file => file.filename.toLowerCase() === imageName.toLowerCase());
   document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
@@ -1028,6 +1028,7 @@ quitButton.addEventListener('click', () => quitMap());
 
 function restartMap() {
   retryCount++;
+  window.totalNotes = '0';
   for (let i = 1; i < 5; i++) {
     const column = document.getElementById('col' + i);
     column.innerHTML = ""
@@ -1044,6 +1045,7 @@ function restartMap() {
 }
 
 function quitMap() {
+  window.totalNotes = '0';
   location.reload();
 }
 
