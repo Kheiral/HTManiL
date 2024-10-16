@@ -288,6 +288,7 @@ async function unZipFunction(zip, mapID) {
         finalFile = file.replace(/\r\n/g, "\n");
       }
       else {
+        console.log(filename);
         const file = await zip.file(filename).async("arraybuffer");
         finalFile = URL.createObjectURL(new Blob([file]));
       }
