@@ -312,6 +312,7 @@ async function unZipFunction(zip, mapID) {
       }
     }
   }
+  console.log(files);
   mapSelectionArea.style.display = 'none';
   startButton.style.display = 'none';
   settingsButton.style.display='none'
@@ -455,7 +456,7 @@ async function unZipFunction(zip, mapID) {
   if (startIndex !== -1) {
     const line = eventLines[startIndex + 1]
     imageName = line.split(',')[2].replace(/"/g, '');
-    console.log('BG image: '+imageName);
+    //console.log('BG image: '+imageName);
   }
   const imageIndex = files.findIndex(file => file.filename.toLowerCase() === imageName.toLowerCase());
   document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
