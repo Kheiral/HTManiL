@@ -241,7 +241,7 @@ function onWindowResize() {
 
 async function downloadFile(mapID) {//This actually downloads and parses the maps
   selectedMap = beatmapInfoMap.get(mapID);
-  mapUrl = 'https://api.nerinyan.moe/d/' + selectedMap.beatmapset_id +'?nh=true&nv=true&nsb=true'
+  mapUrl = 'https://api.nerinyan.moe/d/' + selectedMap.beatmapset_id +'?nh=true&nv=true' //&nsb=true removed due to bugs with the API
   try {
     const response = await fetch(mapUrl);
     console.log(response.headers)
@@ -281,7 +281,6 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
 
 async function unZipFunction(zip, mapID) {
   const files = [];
-  console.log(zip.files);
   await Promise.all(
     Object.keys(zip.files).map(async (filename) => {
       if (filename.endsWith(".osu")) {
