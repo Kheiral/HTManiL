@@ -25,6 +25,7 @@ const urBar = document.getElementById('ur-bar');
 const playArea = document.getElementById('playarea');
 const gameDiv = document.getElementById('game');
 const downloadFilled = document.getElementById('download-filled');
+const downloadBar = document.getElementById('download-bar');
 let frameCounter = 0;
 let initialTiming;
 let initialOffsetPX;
@@ -255,6 +256,8 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
       throw new Error('Download network response was not ok');
     }
     else {
+      downloadBar.style.height='35px';
+      downloadBar.style.margin='0 0 25px 0'
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
@@ -479,17 +482,12 @@ function mapStart() {
   window.hitValue = 0;
   score = 0;
   initialOffsetPX = initialTiming * scrollSpeed * initialSV;
-  _320count = 0;
+  judgementArray=[0, 0, 0, 0, 0, 0]; //Marv, Perf, Great, Good, Bad, Miss
   _320countText.textContent = 0;
-  _300count = 0;
   _300countText.textContent = 0;
-  _200count = 0;
   _200countText.textContent = 0;
-  _100count = 0;
   _100countText.textContent = 0;
-  _50count = 0;
   _50countText.textContent = 0;
-  _0count = 0;
   _0countText.textContent = 0;
   score = 0;
   scoreText.textContent = '0000000';
@@ -523,6 +521,7 @@ function animateNotes() {
     else {
       progressBar.style.width = '100%'
       document.body.style.cursor = 'auto';
+      endOfChart(judgementArray, score, beatmapID);
     }
   }
   if (window.simplifiedSVArray[timingPointIndex]) {//If we're passed the most recent timing point assuming the timing point exists
@@ -722,9 +721,9 @@ function missWithoutHit() {
   judgement.textContent = 'MISS';
   judgement.style.color = '#ff0000';
   comboNumber.textContent = 0;
-  _0count++
+  judgementArray[5]++
   totalHit++
-  _0countText.textContent = _0count;
+  _0countText.textContent = judgementArray[5];
   calcAcc();
   judgeTextAnimate();
 }
@@ -742,55 +741,55 @@ function noteJudge(hitError) {
       judgementText = 'MARVELOUS';
       judgeColor = '#53c3ef';
       window.hitValue += 320;
-      _320count++
-      _320countText.textContent = _320count;
-      if (_300count == 0) {
-        ratioText.textContent = (_320count).toFixed(2) + ':0';
+      judgementArray[0]++
+      _320countText.textContent = judgementArray[0];
+      if (judgementArray[1] == 0) {
+        ratioText.textContent = (judgementArray[0]).toFixed(2) + ':0';
       }
       else {
-        ratioText.textContent = (_320count / _300count).toFixed(2) + ':1';
+        ratioText.textContent = (judgementArray[0] / judgementArray[1]).toFixed(2) + ':1';
       }
       break;
     case netError < perfTW:
       judgementText = 'PERFECT';
       judgeColor = '#ffe061';
       window.hitValue += 300;
-      _300count++
-      _300countText.textContent = _300count;
-      if (_320count == 0) {
-        ratioText.textContent = (1 / _320count).toFixed(2) + ':1';
+      judgementArray[1]++
+      _300countText.textContent = judgementArray[1];
+      if (judgementArray[0] == 0) {
+        ratioText.textContent = (1 / judgementArray[0]).toFixed(2) + ':1';
       }
       else {
-        ratioText.textContent = (_320count / _300count).toFixed(2) + ':1';
+        ratioText.textContent = (judgementArray[0] / judgementArray[1]).toFixed(2) + ':1';
       }
       break;
     case netError < greatTW:
       judgementText = 'GREAT';
       judgeColor = '#41ff18';
       window.hitValue += 200;
-      _200count++
-      _200countText.textContent = _200count;
+      judgementArray[2]++
+      _200countText.textContent = judgementArray[2];
       break;
     case netError < goodTW:
       judgementText = 'GOOD';
       judgeColor = '#57acff';
       window.hitValue += 100;
-      _100count++
-      _100countText.textContent = _100count;
+      judgementArray[3]++
+      _100countText.textContent = judgementArray[3];
       break;
     case netError < badTW:
       judgementText = 'BAD';
       judgeColor = '#b900e4';
       window.hitValue += 50;
-      _50count++
-      _50countText.textContent = _50count;
+      judgementArray[4]++
+      _50countText.textContent = judgementArray[4];
       break;
     default:
       judgementText = 'MISS';
       judgeColor = '#ff0000';
       comboNumber.textContent = 0;
-      _0count++
-      _0countText.textContent = _0count;
+      judgementArray[5]++
+      _0countText.textContent = judgementArray[5];
       break;
   }
   judgeTextAnimate();
@@ -971,7 +970,7 @@ document.addEventListener('keyup', function (releaseEvent) {// Upon release
 });
 
 function calcAcc() {
-  currentAccuracy = 100 * (((300 * (_320count + _300count)) + (200 * _200count) + (100 * _100count) + (50 * _50count)) / (300 * totalHit))
+  currentAccuracy = 100 * (((300 * (judgementArray[0] + judgementArray[1])) + (200 * judgementArray[2]) + (100 * judgementArray[3]) + (50 * judgementArray[4])) / (300 * totalHit))
   if (isNaN(currentAccuracy)) {
     currentAccuracy = 100
   }

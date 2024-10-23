@@ -141,6 +141,12 @@ async function changeDiffSelection(buttonId){
         }
         currentSelectedSR=newSelectedSR;
     }
+    else{
+        var buttonsToShow = document.getElementsByClassName(currentSelectedSR);
+        for (var i = 0; i < buttonsToShow.length; i++) {
+            buttonsToShow[i].style.display = 'flex';
+        }
+    }
 }
 
 const settingsButton = document.getElementById("settings-btn");
