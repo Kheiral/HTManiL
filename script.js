@@ -248,7 +248,7 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
   mapUrl = 'https://api.nerinyan.moe/d/' + selectedMap.beatmapset_id +'?nh=true&nv=true' //&nsb=true removed due to bugs with the API
   try {
     const response = await fetch(mapUrl);
-    console.log(response.headers)
+    //console.log(response.headers)
     const contentLength = response.headers.get('Content-Length');
     const totalSize = contentLength ? parseInt(contentLength, 10) : null;
     let loadedSize = 0;
@@ -319,7 +319,7 @@ async function unZipFunction(zip, mapID) {
       }
     }
   }
-  console.log(files);
+  //console.log(files);
   mapSelectionArea.style.display = 'none';
   startButton.style.display = 'none';
   settingsButton.style.display='none'
@@ -390,7 +390,7 @@ async function unZipFunction(zip, mapID) {
       modeBpmBeatLength = key;
     }
   }
-  console.log(modeBpmBeatLength);
+  //console.log(modeBpmBeatLength);
   window.simplifiedSVArray = [];
   let totalSV = 1;
   let lastBPMSV = 1;
@@ -435,7 +435,7 @@ async function unZipFunction(zip, mapID) {
     'SV': totalSV,
     'duration': 0,
   })
-  console.log(window.simplifiedSVArray)
+  //console.log(window.simplifiedSVArray)
   //PARSE [Difficulty] FIELD
   const difficultySelection = fileContent.match(/\[Difficulty\][\s\S]*?\n\n/);
   const difficultyInfo = difficultySelection[0].trim();
@@ -466,7 +466,12 @@ async function unZipFunction(zip, mapID) {
     //console.log('BG image: '+imageName);
   }
   const imageIndex = files.findIndex(file => file.filename.toLowerCase() === imageName.toLowerCase());
-  document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
+  if(!imageIndex){
+    document.body.style.background = 'black';
+  }
+  else{
+    document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
+  }
   //STARTS THE CHART
   audio.volume = masterVolume;
   mapStart();
@@ -996,7 +1001,7 @@ function handleVisibilityChange() {
 }
 
 function pauseGame() {
-  if (!gamePaused) {
+  if (!gamePaused && gameRunning) {
     gamePaused = true;
     window.pauseStart = new Date()
     audio.pause();

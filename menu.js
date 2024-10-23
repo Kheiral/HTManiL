@@ -4,8 +4,6 @@ beatmapInfoMap = new Map();
 window.scoreMap = new Map();
 var currentSelectedSR = '';
 
-console.log('menu script running')
-
 caches.open('scoreCache').then((cache) => {
     // Retrieve the cached response associated with the key
     cache.match('scoreData').then((response) => {
@@ -22,7 +20,7 @@ caches.open('scoreCache').then((cache) => {
                         console.warn('Error with score cache');
                     }
                 });
-                console.log(window.scoreMap);
+                //console.log(window.scoreMap);
             });
         }
         else {
@@ -39,7 +37,7 @@ caches.open('mapCache').then((cache) => {
             response.json().then((jsonData) => {
                 // Convert the JSON object to a map
                 var arrayData = Object.values(jsonData);
-                console.log(arrayData);
+                //console.log(arrayData);
                 arrayData.forEach(obj => {
                     if (Number.isInteger(obj[0])) {
                         beatmapInfoMap.set(obj[0], obj[1]);
@@ -152,7 +150,9 @@ async function generateButtons() {
         });
     });
     if(currentSelectedSR){
-        changeDiffSelection(currentSelectedSR);
+        placeholder = currentSelectedSR;
+        currentSelectedSR = '';
+        changeDiffSelection('Button'+placeholder);
     }
 }
 

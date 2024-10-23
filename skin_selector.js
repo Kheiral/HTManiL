@@ -150,7 +150,7 @@ function loadScript(url) {
 
 function createDropdown() {
   skinDropdown.innerHTML = ""
-  console.log(window.skinMap)
+  //console.log(window.skinMap)
   window.skinMap.forEach((value, key) => {
     const option = document.createElement('option');
     //console.log(key)
