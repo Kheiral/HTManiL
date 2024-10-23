@@ -26,6 +26,7 @@ const playArea = document.getElementById('playarea');
 const gameDiv = document.getElementById('game');
 const downloadFilled = document.getElementById('download-filled');
 const downloadBar = document.getElementById('download-bar');
+const diffSelectorButtons = document.getElementById('diff-selector-buttons')
 let frameCounter = 0;
 let initialTiming;
 let initialOffsetPX;
@@ -33,6 +34,8 @@ let previousTimestamp = null;
 let modeBpmBeatLength = 0;
 let lastTime;
 let initialSV;
+let beatmapID;
+let gameRunning = false;
 heldNotes = [false];
 erroredHold = [false];
 sentInput = [false];
@@ -256,6 +259,7 @@ async function downloadFile(mapID) {//This actually downloads and parses the map
       throw new Error('Download network response was not ok');
     }
     else {
+      diffSelectorButtons.style.display='none';
       downloadBar.style.height='35px';
       downloadBar.style.margin='0 0 25px 0'
       while (true) {
@@ -309,7 +313,7 @@ async function unZipFunction(zip, mapID) {
         const creatorMatch = metadata.match(/Creator:(.*)/);
         const diffNameMatch = metadata.match(/Version:(.*)/);
         const sourceMatch = metadata.match(/Source:(.*)/);
-        const beatmapID = parseInt(metadata.match(/BeatmapID:(.*)/)[1].trim());
+        beatmapID = parseInt(metadata.match(/BeatmapID:(.*)/)[1].trim());
 
         fileMap.set(beatmapID, files[i]);
       }
@@ -495,6 +499,7 @@ function mapStart() {
   noteID = 0;
   calcAcc();
   window.notes = mapSetup(window.hitObjects);
+  gameRunning = true;
   gamePaused = false;
   audio.currentTime = 0;
   setTimeout(() => {
@@ -519,9 +524,10 @@ function animateNotes() {
     }
     // Update the progress bar here
     else {
+      gameRunning = false;
       progressBar.style.width = '100%'
       document.body.style.cursor = 'auto';
-      endOfChart(judgementArray, score, beatmapID);
+      endOfChart(judgementArray, score, beatmapID, currentAccuracy);
     }
   }
   if (window.simplifiedSVArray[timingPointIndex]) {//If we're passed the most recent timing point assuming the timing point exists
@@ -607,7 +613,7 @@ function animateNotes() {
       erroredHold[colNum] = true;
       missWithoutHit();
       note.style.opacity = 0.5;
-      console.log(colNum)
+      //console.log(colNum)
     }
     if ((releaseTime - window.elapsed) < -missTW && ln) {//Check if you miss the release of an ln
       const thisNote = window.notes.findIndex(note => note.colNum === colNum);
@@ -626,7 +632,7 @@ function animateNotes() {
       //console.log(holdOffset + " "+ noteOffset)
     }
   }
-  if (!gamePaused && progressPercent < 1.1) {
+  if (!gamePaused && gameRunning) {
     requestAnimationFrame(animateNotes);
   }
 }

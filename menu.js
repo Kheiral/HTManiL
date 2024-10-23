@@ -1,9 +1,35 @@
 const difSelector = document.getElementById('dif-selector');
 difButtons = difSelector.querySelectorAll("button");
 beatmapInfoMap = new Map();
+window.scoreMap = new Map();
 var currentSelectedSR = '';
 
 console.log('menu script running')
+
+caches.open('scoreCache').then((cache) => {
+    // Retrieve the cached response associated with the key
+    cache.match('scoreData').then((response) => {
+        // Convert the response to JSON
+        if (response) {
+            response.json().then((jsonData) => {
+                // Convert the JSON object to a map
+                var arrayData = Object.values(jsonData);
+                arrayData.forEach(obj => {
+                    if (Number.isInteger(obj[0])) {
+                        window.scoreMap.set(obj[0], obj[1]);
+                    }
+                    else {
+                        console.warn('Error with score cache');
+                    }
+                });
+                console.log(window.scoreMap);
+            });
+        }
+        else {
+            console.warn('No data found in score cache');
+        }
+    });
+});
 
 caches.open('mapCache').then((cache) => {
     // Retrieve the cached response associated with the key

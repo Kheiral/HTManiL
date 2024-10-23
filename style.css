@@ -60,7 +60,7 @@ body > *{
     user-select: auto;
     padding:30px;
     display:inline-block;
-    height: 30%;
+    height: 15%;
 }
 
 #map-select > *{
@@ -97,7 +97,7 @@ body > *{
     display: flex;
     flex-direction: column;
     width: 30%;
-    height: 70%;
+    height: 85%;
     overflow:scroll;
 }
 
