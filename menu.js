@@ -54,7 +54,6 @@ async function retrieveMapInfo() {//This uses the API to get info such as SR, Di
         console.log(infoJson.beatmaps);
         infoJson.beatmaps.forEach(obj => {
             if (obj.cs == 4) {
-                console.log('im running')
                 const beatmapMapId = obj.id;
                 // Exclude the BeatmapId from the value object
                 const { BeatmapId, ...rest } = obj;
@@ -87,7 +86,8 @@ async function generateButtons() {
     beatmapArray.forEach((element) => {
         const button = document.createElement('button');
         button.id = element[0]
-        const difRounded = Math.floor(element[1].difficulty_rating)
+        var difRounded = Math.floor(element[1].difficulty_rating);
+        if (difRounded == 0){difRounded = 1;}
         const currentDiff = difRounded > 10 ? '10star' : difRounded + 'star';
         const currentDiffButton = document.getElementById('Button'+currentDiff);
         currentDiffButton.classList.remove('disabledDiffButton');
@@ -125,7 +125,9 @@ async function generateButtons() {
             });
         });
     });
-    changeDiffSelection(currentSelectedSR);
+    if(currentSelectedSR){
+        changeDiffSelection(currentSelectedSR);
+    }
 }
 
 async function changeDiffSelection(buttonId){
@@ -140,12 +142,6 @@ async function changeDiffSelection(buttonId){
             buttonsToShow[i].style.display = 'flex';
         }
         currentSelectedSR=newSelectedSR;
-    }
-    else{
-        var buttonsToShow = document.getElementsByClassName(currentSelectedSR);
-        for (var i = 0; i < buttonsToShow.length; i++) {
-            buttonsToShow[i].style.display = 'flex';
-        }
     }
 }
 
