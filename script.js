@@ -35,6 +35,7 @@ let modeBpmBeatLength = 0;
 let lastTime;
 let initialSV;
 let beatmapID;
+let awaitingChartEnd = false;
 let gameRunning = false;
 heldNotes = [false];
 erroredHold = [false];
@@ -506,6 +507,7 @@ function mapStart() {
   window.notes = mapSetup(window.hitObjects);
   gameRunning = true;
   gamePaused = false;
+  awaitingChartEnd = false;
   audio.currentTime = 0;
   setTimeout(() => {
     if (!gamePaused) {
@@ -529,10 +531,16 @@ function animateNotes() {
     }
     // Update the progress bar here
     else {
-      gameRunning = false;
       progressBar.style.width = '100%'
-      document.body.style.cursor = 'auto';
-      endOfChart(judgementArray, score, beatmapID, currentAccuracy);
+      if(!awaitingChartEnd){
+        awaitingChartEnd = true;
+        setTimeout(function(){
+          for(let i = 1; i<4; i++){releaseNote(i)}
+          document.body.style.cursor = 'auto';
+          gameRunning = false;
+          endOfChart(judgementArray, score, beatmapID, currentAccuracy)
+        },1000);
+      };
     }
   }
   if (window.simplifiedSVArray[timingPointIndex]) {//If we're passed the most recent timing point assuming the timing point exists
