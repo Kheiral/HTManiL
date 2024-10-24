@@ -56,7 +56,7 @@ caches.open('mapCache').then((cache) => {
 });
 
 async function retrieveMapInfo() {//This uses the API to get info such as SR, Difficulty, etc. of maps to be displayed for the user to select
-    const regex = /beatmapsets\/(\d+)#/;
+    const regex = /beatmapsets\/(\d+)[^\d]/;
     const match = mapInput.value.match(regex);
     mapInput.value = '';
     if (match) {

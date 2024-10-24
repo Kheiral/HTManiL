@@ -27,6 +27,7 @@ const gameDiv = document.getElementById('game');
 const downloadFilled = document.getElementById('download-filled');
 const downloadBar = document.getElementById('download-bar');
 const diffSelectorButtons = document.getElementById('diff-selector-buttons')
+window.speedModifier = 1;
 let frameCounter = 0;
 let initialTiming;
 let initialOffsetPX;
@@ -35,8 +36,11 @@ let modeBpmBeatLength = 0;
 let lastTime;
 let initialSV;
 let beatmapID;
+let totalSVpxOffset;
 let awaitingChartEnd = false;
 let gameRunning = false;
+let loadedAudio;
+let gainNode;
 heldNotes = [false];
 erroredHold = [false];
 sentInput = [false];
@@ -338,14 +342,14 @@ async function unZipFunction(zip, mapID) {
   window.hitObjects = fileContent.substring(fileContent.indexOf("[HitObjects]") + 13).trim();
   const hoLines = window.hitObjects.split("\n");
   const lastLine = hoLines[hoLines.length - 1];
-  var [, , lastHOTime, , , lastHOTimeStr] = lastLine.split(',');
+  var [, , lastHOTime, , , lastHOTimeStr] = lastLine.split(',');//HO for Hit Object
   lastHOTime = parseInt(lastHOTime);
   lastHOReleaseTime = parseInt(lastHOTimeStr.split(':')[0]); // parse release time if long note
   if (lastHOReleaseTime > lastHOTime) {
-    window.finalTime = lastHOReleaseTime
+    window.finalTime = lastHOReleaseTime/window.speedModifier;
   }
   else {
-    window.finalTime = lastHOTime;
+    window.finalTime = lastHOTime/window.speedModifier;
   }
 
   //PARSE [TimingPoints] FIELD
@@ -359,7 +363,7 @@ async function unZipFunction(zip, mapID) {
     }
     var [offset, beatLength, meter, sampleIndex, sampleID, volume, unique, fx] = line.split(',');
     beatLength = parseFloat(beatLength);
-    offset = parseFloat(offset);
+    offset = parseFloat(offset)/window.speedModifier;
     unique = !!parseInt(unique);
     timingPoints.push({ offset, beatLength, meter, sampleIndex, sampleID, volume, unique, fx });
   }
@@ -426,6 +430,8 @@ async function unZipFunction(zip, mapID) {
   else {
     initialSV = window.simplifiedSVArray[0].SV;
   }
+
+
   window.simplifiedSVArray.unshift({
     'offset': -3000,
     'SV': initialSV,
@@ -454,7 +460,37 @@ async function unZipFunction(zip, mapID) {
   const audioFilenameMatch = general.match(/AudioFilename:(.*)/);
   const audioFilename = audioFilenameMatch ? audioFilenameMatch[1].trim() : '';
   const audioFileIndex = files.findIndex(file => file.filename === audioFilename);
-  audio = new Audio(files[audioFileIndex].file);
+
+  const reader = new FileReader();
+  let audioBlob = await fetch(files[audioFileIndex].file).then(r => r.blob());
+  
+
+  const audioContext = new AudioContext();
+  gainNode = audioContext.createGain();
+
+  const audioLoadPromise = new Promise(resolve => {
+    reader.onload = function() {
+      const arrayBuffer = reader.result;
+      audioContext.decodeAudioData(arrayBuffer)
+    
+        .then(buffer => {
+          loadedAudio = audioContext.createBufferSource();
+          loadedAudio.buffer = buffer;
+  
+          loadedAudio.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          loadedAudio.connect(audioContext.destination);
+          gainNode.gain.value = masterVolume;
+          console.log(loadedAudio);
+          resolve(loadedAudio);
+        })
+        .catch(error => {
+          console.error('Error decoding audio:', error);
+        });
+    };
+    reader.readAsArrayBuffer(audioBlob);
+  });
+  
   //PARSE [Events] FIELD
   const eventsSelection = fileContent.match(/\[Events\][\s\S]*?\n\n/);
   const events = eventsSelection[0].trim();
@@ -474,8 +510,9 @@ async function unZipFunction(zip, mapID) {
     document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
   }
   //STARTS THE CHART
-  audio.volume = masterVolume;
-  mapStart();
+  audioLoadPromise.then(audio => {
+    mapStart();
+  });
 }
 
 function mapStart() {
@@ -508,10 +545,11 @@ function mapStart() {
   gameRunning = true;
   gamePaused = false;
   awaitingChartEnd = false;
-  audio.currentTime = 0;
+  loadedAudio.currentTime = 0;
+  loadedAudio.playbackRate.value = window.speedModifier;
   setTimeout(() => {
     if (!gamePaused) {
-      audio.play();
+      loadedAudio.start();
     }
   }, 3000 + audioOffset);
   window.startTime = new Date(new Date().getTime() + 3000);
@@ -538,7 +576,7 @@ function animateNotes() {
           for(let i = 1; i<4; i++){releaseNote(i)}
           document.body.style.cursor = 'auto';
           gameRunning = false;
-          endOfChart(judgementArray, score, beatmapID, currentAccuracy)
+          if(!autoplay){endOfChart(judgementArray, score, beatmapID, currentAccuracy)};
         },1000);
       };
     }
@@ -655,11 +693,11 @@ function mapSetup(data) {
   const notes = data.split('\n').map(line => {
     var [x, , time, , , timeStr] = line.split(',');
     x = parseInt(x);
-    time = parseInt(time);
+    time = parseInt(time)/window.speedModifier;
     ln = false;
     held = false;
     var erroredHold = false;
-    const releaseTime = parseInt(timeStr.split(':')[0]); // parse release time if long note
+    const releaseTime = parseInt(timeStr.split(':')[0])/window.speedModifier; // parse release time if long note
     if (releaseTime > time) {
       ln = true;
       window.totalNotes++
@@ -709,22 +747,29 @@ function mapSetup(data) {
   });
   return notes;
 }
-function calcNoteOffset(time) {
-  let tpConstructor = 0;
+function calcNoteOffset(time) {//input time is the hit time of the note
+  let currTimingPointIndex = 0;
   let calcNoteOffset = 0;
-  for (; window.simplifiedSVArray[tpConstructor] && window.simplifiedSVArray[tpConstructor].offset < time; tpConstructor++) {
-    if (window.simplifiedSVArray[tpConstructor]) {
-      if (window.simplifiedSVArray[tpConstructor + 1] && window.simplifiedSVArray[tpConstructor + 1].offset > time && window.simplifiedSVArray[tpConstructor].offset < time) {
-        //console.log(time - window.simplifiedSVArray[tpConstructor].offset)
-        calcNoteOffset += window.simplifiedSVArray[tpConstructor].SV * (time - window.simplifiedSVArray[tpConstructor].offset) * scrollSpeed;
+  for (; window.simplifiedSVArray[currTimingPointIndex] && window.simplifiedSVArray[currTimingPointIndex].offset < time; currTimingPointIndex++) {//If there are timing points left before we reach the input time
+    if (window.simplifiedSVArray[currTimingPointIndex]) {
+      /*
+      If the next timing point is after the input time
+      AND
+      If the current timing point is before the input time
+
+      This acts as a "is this the last timing point before the note?"
+      This is useful because we need to calculate the offset of the note since the last timing point/SV to get the final offset
+      */
+      if (window.simplifiedSVArray[currTimingPointIndex + 1] && window.simplifiedSVArray[currTimingPointIndex + 1].offset > time && window.simplifiedSVArray[currTimingPointIndex].offset < time) {
+        calcNoteOffset += window.simplifiedSVArray[currTimingPointIndex].SV * (time - window.simplifiedSVArray[currTimingPointIndex].offset) * scrollSpeed;
         break
       }
+      //Otherwise just calculate the entire offset of this specific timing point and add it to the total offset
       else {
-        calcNoteOffset += (window.simplifiedSVArray[tpConstructor].duration) * window.simplifiedSVArray[tpConstructor].SV * scrollSpeed;
+        calcNoteOffset += (window.simplifiedSVArray[currTimingPointIndex].duration) * window.simplifiedSVArray[currTimingPointIndex].SV * scrollSpeed;
       }
     }
   }
-  //console.log(calcNoteOffset);
   return calcNoteOffset;
 }
 
@@ -877,19 +922,25 @@ document.addEventListener('keydown', function (event) {
     altPressed = true;
   }
 
-  if (keyPressed === 'f4') {
+  if (keyPressed === 'f4' && !gamePaused) {
     event.preventDefault();
+    oldScrollSpeed = scrollSpeedVar
     scrollSpeedVar++
+    totalSVpxOffset = (scrollSpeedVar/oldScrollSpeed) * totalSVpxOffset;
     scrollSpeed = scrollSpeedVar / 10;
+    recalcNoteOffset();
     fadeoutText(scrollSpeedText);
     scrollSpeedText.textContent = `Scroll Speed: ${scrollSpeed} pixels/ms`
     writeToCache();
   }
 
-  if (keyPressed === 'f3') {
+  if (keyPressed === 'f3' && !gamePaused) {
     event.preventDefault();
+    oldScrollSpeed = scrollSpeedVar
     scrollSpeedVar--
+    totalSVpxOffset = (scrollSpeedVar/oldScrollSpeed) * totalSVpxOffset;
     scrollSpeed = scrollSpeedVar / 10;
+    recalcNoteOffset();
     fadeoutText(scrollSpeedText);
     scrollSpeedText.textContent = `Scroll Speed: ${scrollSpeed} pixels/ms`
     writeToCache();
@@ -1012,7 +1063,7 @@ function pauseGame() {
   if (!gamePaused && gameRunning) {
     gamePaused = true;
     window.pauseStart = new Date()
-    audio.pause();
+    loadedAudio.stop();
     pauseOverlay.style.display = 'flex';
     document.body.style.cursor = 'auto';
   }
@@ -1029,11 +1080,11 @@ function resumeGame() {
       adjustedTime = new Date(window.startTime.getTime() + totalPausedTime);
       if (window.elapsed < 0) {
         setTimeout(() => {
-          audio.play();
+          loadedAudio.start();
         }, window.elapsed * -1)
       }
       else {
-        audio.play();
+        loadedAudio.start();
       }
 
       animateNotes();
@@ -1058,6 +1109,7 @@ function restartMap() {
   mapStart();
   window.hitValue = 0;
   score = 0;
+  noteID = 0;
   scoreText.textContent = '0000000';
   ratioText.textContent = '0.00:0'
   progressBar.style.width = '0%'
@@ -1138,4 +1190,21 @@ function handleFileDrop(event) {
       }
     }
   }
+}
+
+function recalcNoteOffset(){//If the scroll speed changes, the intial offset of each note has to change
+  if(gameRunning){
+    window.notes.forEach(element => {
+      element.standardNoteOffset = calcNoteOffset(element.time);
+      if (element.ln) {
+        element.standardLNheight = calcNoteOffset(element.releaseTime) - element.standardNoteOffset;
+        element.holdBody.style.height = element.standardLNheight + 'px';
+        element.holdHead.style[downscrollMod] = element.holdBody.style.height;
+      }
+    });
+  }
+}
+
+function adjustVolume(volume) {
+  gainNode.gain.value = volume;
 }
