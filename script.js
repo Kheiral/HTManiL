@@ -41,6 +41,7 @@ let awaitingChartEnd = false;
 let gameRunning = false;
 let loadedAudio;
 let gainNode;
+let scoreV2 = false;
 heldNotes = [false];
 erroredHold = [false];
 sentInput = [false];
@@ -476,12 +477,10 @@ async function unZipFunction(zip, mapID) {
         .then(buffer => {
           loadedAudio = audioContext.createBufferSource();
           loadedAudio.buffer = buffer;
-  
+          var gainNode = audioContext.createGain();
           loadedAudio.connect(gainNode);
-          gainNode.connect(audioContext.destination);
           loadedAudio.connect(audioContext.destination);
           gainNode.gain.value = masterVolume;
-          console.log(loadedAudio);
           resolve(loadedAudio);
         })
         .catch(error => {
@@ -610,10 +609,10 @@ function animateNotes() {
   }
 
   for (let i = 0; i < 100 && i < window.notes.length; i++) { //only calculate the most recent 100 notes
-    const { note, time, holdBody, holdHead, releaseTime, held, colNum, ln, standardNoteOffset, standardLNheight } = window.notes[i];
+    const { note, time, holdBody, holdHead, releaseTime, held, colNum, ln, standardNoteOffset, standardLNheight, initialError, missedSV1LN } = window.notes[i];
     const delta = time - window.elapsed;
-    if (autoplay) {
-      //console.log('AUTO');
+
+    if (autoplay) {//AUTOPLAY ONLY
       if (Math.abs(delta) < 16) {
         hitNote(colNum);
         if (!ln) {
@@ -624,22 +623,24 @@ function animateNotes() {
         releaseNote(colNum);
       }
     }
-    if (!held) {
+
+
+    if (!held) {//Visually parse long note that is not held
       noteOffset = standardNoteOffset - scrolledDistance + hitPosition;
     }
-    else if (delta > 0) {
+    else if (delta > 0) { //if the note is above the judgement line
       noteOffset = standardNoteOffset - scrolledDistance + hitPosition;
     }
-    else if (!erroredHold[colNum]) {//If a note is held and is passed the judgement line
+    else if (!scoreV2 || !erroredHold[colNum]) {//If a note is held and is passed the judgement line
       noteOffset = hitPosition;
-      if (releaseTime < window.elapsed) {
+      if (releaseTime < window.elapsed) {//If the release time for the longnote has passed
         holdBody.style.height = '0px'
       }
-      else {
+      else {//If the release time for the longnote HASN'T passed
         holdBody.style.height = (standardNoteOffset - scrolledDistance + standardLNheight) + 'px';
       }
-      if (parseInt(holdBody.style.height) <= halfNoteHeight) {
-        holdBody.style.display = 'none'
+      if (parseInt(holdBody.style.height) <= halfNoteHeight) {//If the long note is being held for too long and the body and head are effetively on top of the receptor
+        holdBody.style.display = 'none'//Set both the head and body to be invisible
         if (holdHead) {
           holdHead.style.display = 'none'
         }
@@ -648,6 +649,7 @@ function animateNotes() {
         holdHead.style[downscrollMod] = holdBody.style.height;
       }
     }
+
     if (noteOffset < window.innerHeight) {//if the note below the top of the screen
       note.style.display = 'block';
     }
@@ -655,38 +657,47 @@ function animateNotes() {
       const thisNote = window.notes.findIndex(note => note.colNum === colNum);
       window.notes.splice(thisNote, 1);
       missWithoutHit();
-      //console.log("1")
       note.innerHTML = ""
       note.remove();
       continue;
     }
-    else if (delta < -missTW && !erroredHold[colNum] && !held) {// if you miss the start of a long note
+    else if (!held && delta < -missTW && !erroredHold[colNum]) {// if you miss the start of a long note
       erroredHold[colNum] = true;
-      missWithoutHit();
+      if(scoreV2){missWithoutHit();}
+      else{window.notes[i].initialError = missTW};
       note.style.opacity = 0.5;
-      //console.log(colNum)
     }
-    if ((releaseTime - window.elapsed) < -missTW && ln) {//Check if you miss the release of an ln
+    if(!scoreV2 && held && missedSV1LN && ((releaseTime - window.elapsed)<=badTW || -(releaseTime - window.elapsed)>=goodTW)){
+      window.notes[i].missedSV1LN = false;
+    }
+
+    if (ln && (releaseTime - window.elapsed) < -missTW) {//Check if you miss the release of an ln
       const thisNote = window.notes.findIndex(note => note.colNum === colNum);
       erroredHold[colNum] = false;
-      missWithoutHit();
+      if(scoreV2){missWithoutHit();}
+      else if(missedSV1LN){
+        console.warn('missed LN! part 2')
+        missWithoutHit();
+      }
       window.notes.splice(thisNote, 1);
-      //console.log("3")
       note.innerHTML = ""
       note.remove();
       continue;
     }
 
+    //if(ln && !scoreV2 && !held && )
+
     note.style[downscrollMod] = noteOffset + 'px';
     if (holdBody) {
       holdBody.style[downscrollMod] = halfNoteHeight + 'px';
-      //console.log(holdOffset + " "+ noteOffset)
     }
   }
   if (!gamePaused && gameRunning) {
     requestAnimationFrame(animateNotes);
   }
 }
+
+
 
 // Parse data and create note elements
 function mapSetup(data) {
@@ -696,11 +707,15 @@ function mapSetup(data) {
     time = parseInt(time)/window.speedModifier;
     ln = false;
     held = false;
+    let initialError = 0;
     var erroredHold = false;
+    var missedSV1LN = true;
     const releaseTime = parseInt(timeStr.split(':')[0])/window.speedModifier; // parse release time if long note
     if (releaseTime > time) {
       ln = true;
-      window.totalNotes++
+      if (scoreV2){
+        window.totalNotes++
+      }
     }
     window.totalNotes++
     const note = document.createElement('div');
@@ -743,7 +758,7 @@ function mapSetup(data) {
         note.appendChild(holdHead);
       }
     }
-    return { note, time, holdBody, holdHead, releaseTime, held, colNum, erroredHold, noteID, ln, standardNoteOffset, standardLNheight };
+    return { note, time, holdBody, holdHead, releaseTime, held, colNum, erroredHold, noteID, ln, standardNoteOffset, standardLNheight, initialError, missedSV1LN };
   });
   return notes;
 }
@@ -792,79 +807,162 @@ function missWithoutHit() {
   judgeTextAnimate();
 }
 
-function noteJudge(hitError) {
-  comboNumber.textContent++;
+function hitMarv(){
+  text = 'MARVELOUS';
+  window.hitValue += 320;
+  judgementArray[0]++
+  _320countText.textContent = judgementArray[0];
+  if (judgementArray[1] == 0) {
+    ratioText.textContent = (judgementArray[0]).toFixed(2) + ':0';
+  }
+  else {
+    ratioText.textContent = (judgementArray[0] / judgementArray[1]).toFixed(2) + ':1';
+  }
+  return text
+}
+
+function hitPerf(){
+  text = 'PERFECT';
+  window.hitValue += 300;
+  judgementArray[1]++
+  _300countText.textContent = judgementArray[1];
+  if (judgementArray[0] == 0) {
+    ratioText.textContent = (1 / judgementArray[0]).toFixed(2) + ':1';
+  }
+  else {
+    ratioText.textContent = (judgementArray[0] / judgementArray[1]).toFixed(2) + ':1';
+  }
+  return text
+}
+
+function hitGreat(){
+  text = 'GREAT';
+  window.hitValue += 200;
+  judgementArray[2]++
+  _200countText.textContent = judgementArray[2];
+  return text
+}
+
+function hitGood(){
+  text = 'GOOD';
+  window.hitValue += 100;
+  judgementArray[3]++
+  _100countText.textContent = judgementArray[3];
+  return text
+}
+
+function hitBad(){
+  text = 'BAD';
+  window.hitValue += 50;
+  judgementArray[4]++
+  _50countText.textContent = judgementArray[4];
+  return text
+}
+
+function hitMiss(){
+  text = 'MISS';
+  comboNumber.textContent = 0;
+  judgementArray[5]++
+  _0countText.textContent = judgementArray[5];
+  return text
+}
+
+function createURNote(hitError){
+  let color;
+  netError = Math.abs(hitError)
+  switch (true) {
+    case netError < 16:
+      color = '#53c3ef';
+      break;
+    case netError < perfTW:
+      color = '#ffe061';
+      break;
+    case netError < greatTW:
+      color = '#41ff18';
+      break;
+    case netError < goodTW:
+      color = '#57acff';
+      break;
+    case netError < badTW:
+      color = '#b900e4';
+      break;
+    default:
+      color = '#ff0000';
+      break;
+  }
   const urNote = document.createElement('div');
   urNote.classList.add('ur-note');
   urNote.style.transform = `translate(${hitError * -2}px, 0)`
-  netError = Math.abs(hitError);
-  let judgementText;
-  let judgeColor;
-  switch (true) {
-    case netError < 16:
-      judgementText = 'MARVELOUS';
-      judgeColor = '#53c3ef';
-      window.hitValue += 320;
-      judgementArray[0]++
-      _320countText.textContent = judgementArray[0];
-      if (judgementArray[1] == 0) {
-        ratioText.textContent = (judgementArray[0]).toFixed(2) + ':0';
-      }
-      else {
-        ratioText.textContent = (judgementArray[0] / judgementArray[1]).toFixed(2) + ':1';
-      }
-      break;
-    case netError < perfTW:
-      judgementText = 'PERFECT';
-      judgeColor = '#ffe061';
-      window.hitValue += 300;
-      judgementArray[1]++
-      _300countText.textContent = judgementArray[1];
-      if (judgementArray[0] == 0) {
-        ratioText.textContent = (1 / judgementArray[0]).toFixed(2) + ':1';
-      }
-      else {
-        ratioText.textContent = (judgementArray[0] / judgementArray[1]).toFixed(2) + ':1';
-      }
-      break;
-    case netError < greatTW:
-      judgementText = 'GREAT';
-      judgeColor = '#41ff18';
-      window.hitValue += 200;
-      judgementArray[2]++
-      _200countText.textContent = judgementArray[2];
-      break;
-    case netError < goodTW:
-      judgementText = 'GOOD';
-      judgeColor = '#57acff';
-      window.hitValue += 100;
-      judgementArray[3]++
-      _100countText.textContent = judgementArray[3];
-      break;
-    case netError < badTW:
-      judgementText = 'BAD';
-      judgeColor = '#b900e4';
-      window.hitValue += 50;
-      judgementArray[4]++
-      _50countText.textContent = judgementArray[4];
-      break;
-    default:
-      judgementText = 'MISS';
-      judgeColor = '#ff0000';
-      comboNumber.textContent = 0;
-      judgementArray[5]++
-      _0countText.textContent = judgementArray[5];
-      break;
-  }
-  judgeTextAnimate();
-  urNote.style.backgroundColor = judgeColor + '33';
-  judgement.textContent = judgementText;
-  judgement.style.color = judgeColor;
-  totalHit++
+  urNote.style.backgroundColor = color + '33';
   urBar.appendChild(urNote);
   if (urBar.childElementCount > 50) {
     urBar.removeChild(urBar.firstChild);
   }
+  return color;
+}
+
+function v1releaseJudge(initialError, combinedError){
+  let judgeText;
+  let judgeColor;
+  comboNumber.textContent++;
+  switch (true) {
+    case initialError <= 19.2 && combinedError <= 38.4:
+      judgeText = hitMarv();
+      judgeColor = '#53c3ef';
+      break;
+    case initialError <= perfTW*1.1 && combinedError <= perfTW*2.2:
+      judgeText = hitPerf();
+      judgeColor = '#ffe061';
+      break;
+      case initialError <= greatTW && combinedError <= greatTW*2:
+      judgeText = hitGreat();
+      judgeColor = '#41ff18';
+      break;
+    case initialError <= goodTW && combinedError <= goodTW*2:
+      judgeText = hitGood();
+      judgeColor = '#57acff';
+      break;
+    default:
+      judgeText = hitBad();
+      judgeColor = '#b900e4';
+      break;
+  }
+  judgeTextAnimate();
+  judgement.textContent = judgeText;
+  judgement.style.color = judgeColor;
+  totalHit++
+  calcAcc();
+}
+
+function noteJudge(hitError) {
+  let judgeText;
+  comboNumber.textContent++;
+  netError = Math.abs(hitError);
+  switch (true) {
+    case netError < 16:
+      judgeText = hitMarv();
+      break;
+    case netError < perfTW:
+      judgeText = hitPerf();
+      break;
+    case netError < greatTW:
+      judgeText = hitGreat();
+      break;
+    case netError < goodTW:
+      judgeText = hitGood();
+      break;
+    case netError < badTW:
+      judgeText = hitBad();
+      break;
+    default:
+      judgeText = hitMiss();
+      break;
+  }
+  judgeTextAnimate();
+  judgeColor = createURNote(hitError);
+  judgement.textContent = judgeText;
+  judgement.style.color = judgeColor;
+  totalHit++
   calcAcc();
 }
 
@@ -1133,7 +1231,13 @@ function hitNote(column) {
     heldNotes[column] = true; // Add the note to the heldNotes array
     window.notes[hitNoteIndex].held = true; // Set the held value to true
     if (Math.abs(hitError) < missTW) {
-      noteJudge(hitError);
+      if(scoreV2){
+        noteJudge(hitError);
+      }
+      else{
+        judgeColor = createURNote(hitError);
+        hitNote.initialError = Math.abs(hitError);
+      }
     }
   }
   else if (Math.abs(hitError) < missTW && !hitNote.ln) { // If within miss timing window
@@ -1157,10 +1261,31 @@ function releaseNote(column) {
     const releaseNoteElement = document.getElementById(`note${releasedNote.noteID}`);
     releasedNote.held = false;
     releaseError = releasedNote.releaseTime - window.elapsed + visualOffset;
-    noteJudge(releaseError);
-    window.notes.splice(releasedNoteIndex, 1);
-    releaseNoteElement.innerHTML = ""
-    releaseNoteElement.remove(); // Remove the hit note's element from the DOM
+
+    if(scoreV2){
+      noteJudge(releaseError);
+    }
+    else{
+      createURNote(releaseError);
+      if(!releasedNote.missedSV1LN){
+        v1releaseJudge(releasedNote.initialError, releasedNote.initialError += Math.abs(releaseError));
+      }
+      else if (-(releasedNote.releaseTime - window.elapsed)>=goodTW){
+        console.warn('missed LN!')
+        missWithoutHit();
+      }
+    }
+    if(releaseError > missTW){
+      releaseNoteElement.children[1].style.height = releasedNote.standardLNheight + 'px';
+      releaseNoteElement.children[2].style[downscrollMod] = releasedNote.standardLNheight + 'px'
+      releaseNoteElement.style.opacity=0.5;
+      //releasedNote.colNum = -1;
+    }
+    else{
+      window.notes.splice(releasedNoteIndex, 1);
+      releaseNoteElement.innerHTML = ""
+      releaseNoteElement.remove(); // Remove the hit note's element from the DOM, this needs to be changed
+    }
   }
 }
 
