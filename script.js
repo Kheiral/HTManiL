@@ -58,6 +58,10 @@ keyBinds = []
 let keyToColumnMap
 let backgroundDim = 0.95
 let masterVolume = 0.05
+let pitchChange = true;
+let music
+let baseScore
+let bonusScore
 
 function readFromCache() {
   // Check if the browser supports the Cache API
@@ -462,33 +466,7 @@ async function unZipFunction(zip, mapID) {
   const audioFilename = audioFilenameMatch ? audioFilenameMatch[1].trim() : '';
   const audioFileIndex = files.findIndex(file => file.filename === audioFilename);
 
-  const reader = new FileReader();
-  let audioBlob = await fetch(files[audioFileIndex].file).then(r => r.blob());
-  
 
-  const audioContext = new AudioContext();
-  gainNode = audioContext.createGain();
-
-  const audioLoadPromise = new Promise(resolve => {
-    reader.onload = function() {
-      const arrayBuffer = reader.result;
-      audioContext.decodeAudioData(arrayBuffer)
-    
-        .then(buffer => {
-          loadedAudio = audioContext.createBufferSource();
-          loadedAudio.buffer = buffer;
-          var gainNode = audioContext.createGain();
-          loadedAudio.connect(gainNode);
-          loadedAudio.connect(audioContext.destination);
-          gainNode.gain.value = masterVolume;
-          resolve(loadedAudio);
-        })
-        .catch(error => {
-          console.error('Error decoding audio:', error);
-        });
-    };
-    reader.readAsArrayBuffer(audioBlob);
-  });
   
   //PARSE [Events] FIELD
   const eventsSelection = fileContent.match(/\[Events\][\s\S]*?\n\n/);
@@ -509,9 +487,18 @@ async function unZipFunction(zip, mapID) {
     document.body.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,${backgroundDim}), rgba(0,0,0,${backgroundDim})), url(${files[imageIndex].file})`;
   }
   //STARTS THE CHART
-  audioLoadPromise.then(audio => {
-    mapStart();
+
+  console.log(files)
+
+  music = new Howl({
+    src: [files[audioFileIndex].file],
+    format: ['mp3'],
+    html5: !pitchChange
   });
+
+  //music.play();
+
+  mapStart();
 }
 
 function mapStart() {
@@ -526,7 +513,11 @@ function mapStart() {
   //window.currentOffset = window.simplifiedSVArray[0].offset;
   //window.currentSV = initialSV;
   window.hitValue = 0;
+  window.hitBonusValue = 0;
+  window.bonus = 100;
   score = 0;
+  baseScore = 0;
+  bonusScore = 0;
   initialOffsetPX = initialTiming * scrollSpeed * initialSV;
   judgementArray=[0, 0, 0, 0, 0, 0]; //Marv, Perf, Great, Good, Bad, Miss
   _320countText.textContent = 0;
@@ -535,20 +526,20 @@ function mapStart() {
   _100countText.textContent = 0;
   _50countText.textContent = 0;
   _0countText.textContent = 0;
-  score = 0;
   scoreText.textContent = '0000000';
   totalHit = 0;
   noteID = 0;
   calcAcc();
   window.notes = mapSetup(window.hitObjects);
+  window.averageNoteValue = (500000 / window.totalNotes)
   gameRunning = true;
   gamePaused = false;
   awaitingChartEnd = false;
-  loadedAudio.currentTime = 0;
-  loadedAudio.playbackRate.value = window.speedModifier;
+  music.volume(masterVolume);
+  music.rate(window.speedModifier);
   setTimeout(() => {
     if (!gamePaused) {
-      loadedAudio.start();
+      music.play();
     }
   }, 3000 + audioOffset);
   window.startTime = new Date(new Date().getTime() + 3000);
@@ -810,6 +801,8 @@ function missWithoutHit() {
 function hitMarv(){
   text = 'MARVELOUS';
   window.hitValue += 320;
+  window.hitBonusValue = 32;
+  window.bonus += 2
   judgementArray[0]++
   _320countText.textContent = judgementArray[0];
   if (judgementArray[1] == 0) {
@@ -824,6 +817,8 @@ function hitMarv(){
 function hitPerf(){
   text = 'PERFECT';
   window.hitValue += 300;
+  window.hitBonusValue = 32;
+  window.bonus += 1
   judgementArray[1]++
   _300countText.textContent = judgementArray[1];
   if (judgementArray[0] == 0) {
@@ -838,6 +833,8 @@ function hitPerf(){
 function hitGreat(){
   text = 'GREAT';
   window.hitValue += 200;
+  window.hitBonusValue = 16;
+  window.bonus -= 8
   judgementArray[2]++
   _200countText.textContent = judgementArray[2];
   return text
@@ -846,6 +843,8 @@ function hitGreat(){
 function hitGood(){
   text = 'GOOD';
   window.hitValue += 100;
+  window.hitBonusValue = 8;
+  window.bonus -= 24;
   judgementArray[3]++
   _100countText.textContent = judgementArray[3];
   return text
@@ -854,6 +853,8 @@ function hitGood(){
 function hitBad(){
   text = 'BAD';
   window.hitValue += 50;
+  window.hitBonusValue = 4;
+  window.bonus -= 44;
   judgementArray[4]++
   _50countText.textContent = judgementArray[4];
   return text
@@ -862,6 +863,8 @@ function hitBad(){
 function hitMiss(){
   text = 'MISS';
   comboNumber.textContent = 0;
+  window.hitBonusValue = 0;
+  window.bonus = 0;
   judgementArray[5]++
   _0countText.textContent = judgementArray[5];
   return text
@@ -1142,10 +1145,16 @@ function calcAcc() {
   if (isNaN(currentAccuracy)) {
     currentAccuracy = 100
   }
+  if(window.bonus > 100){window.bonus=100};
+  if(window.bonus < 0){window.bonus = 0};
   accuracyText.textContent = currentAccuracy.toFixed(2) + '%';
-  score = (1000000 / window.totalNotes) * (window.hitValue / 320);
+  baseScore = (window.averageNoteValue) * (window.hitValue / 320);
+  bonusScore += (window.averageNoteValue) * (window.hitBonusValue * Math.sqrt(window.bonus) / 320)
+  score = baseScore + bonusScore;
   if (isNaN(score)) {
     score = 0;
+    baseScore = 0;
+    bonusScore = 0;
   }
   scoreText.textContent = String(score.toFixed(0)).padStart(7, '0');
 }
@@ -1161,7 +1170,7 @@ function pauseGame() {
   if (!gamePaused && gameRunning) {
     gamePaused = true;
     window.pauseStart = new Date()
-    loadedAudio.stop();
+    music.pause();
     pauseOverlay.style.display = 'flex';
     document.body.style.cursor = 'auto';
   }
@@ -1178,11 +1187,11 @@ function resumeGame() {
       adjustedTime = new Date(window.startTime.getTime() + totalPausedTime);
       if (window.elapsed < 0) {
         setTimeout(() => {
-          loadedAudio.start();
+          music.play();
         }, window.elapsed * -1)
       }
       else {
-        loadedAudio.start();
+        music.play();
       }
 
       animateNotes();
@@ -1206,7 +1215,11 @@ function restartMap() {
   pauseOverlay.style.display = 'none';
   mapStart();
   window.hitValue = 0;
+  window.hitBonusValue = 0;
+  window.bonus = 100;
   score = 0;
+  baseScore = 0;
+  bonusScore = 0;
   noteID = 0;
   scoreText.textContent = '0000000';
   ratioText.textContent = '0.00:0'
@@ -1328,8 +1341,4 @@ function recalcNoteOffset(){//If the scroll speed changes, the intial offset of 
       }
     });
   }
-}
-
-function adjustVolume(volume) {
-  gainNode.gain.value = volume;
 }
