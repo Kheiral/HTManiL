@@ -27,6 +27,8 @@ const gameDiv = document.getElementById('game');
 const downloadFilled = document.getElementById('download-filled');
 const downloadBar = document.getElementById('download-bar');
 const diffSelectorButtons = document.getElementById('diff-selector-buttons')
+const hitCountContainer = document.getElementById('hit-count-container')
+const modMenu = document.getElementById('mod-menu')
 window.speedModifier = 1;
 let frameCounter = 0;
 let initialTiming;
@@ -39,8 +41,6 @@ let beatmapID;
 let totalSVpxOffset;
 let awaitingChartEnd = false;
 let gameRunning = false;
-let loadedAudio;
-let gainNode;
 let scoreV2 = false;
 heldNotes = [false];
 erroredHold = [false];
@@ -62,6 +62,18 @@ let pitchChange = true;
 let music
 let baseScore
 let bonusScore
+let mirror
+
+const pitchSwitch = document.getElementById('pitch-switch');
+const pitchInput = pitchSwitch.querySelector('input[type="checkbox"]');
+const autoSwitch = document.getElementById('auto-switch');
+const autoInput = autoSwitch.querySelector('input[type="checkbox"]');
+const mirrorSwitch = document.getElementById('mirror-switch');
+const mirrorInput = mirrorSwitch.querySelector('input[type="checkbox"]');
+
+pitchInput.addEventListener('change', () => {pitchChange = !pitchInput.checked;})
+autoInput.addEventListener('change', () => {autoplay = autoInput.checked;})
+mirrorInput.addEventListener('change', () => {mirror = mirrorInput.checked;})
 
 function readFromCache() {
   // Check if the browser supports the Cache API
@@ -184,7 +196,7 @@ function loadSkinStyle() {
     playArea.style.width = window.styleVars.playfieldWidth;
     playArea.style.borderRight = window.styleVars.playfieldBorderSize + ' solid ' + window.styleVars.playfieldBorderColor;
     playArea.style.borderLeft = playArea.style.borderRight;
-    document.getElementById('hit-count-container').style.right = window.styleVars.hitCountOffset_X;
+    hitCountContainer.style.right = window.styleVars.hitCountOffset_X;
 
     downscroll = window.styleVars.downscroll;
     judgeTextSize = parseInt(window.styleVars.judgementTextSize);
@@ -527,6 +539,8 @@ function mapStart() {
   _50countText.textContent = 0;
   _0countText.textContent = 0;
   scoreText.textContent = '0000000';
+  hitCountContainer.style.display = "inline-flex";
+  modMenu.style.display = "none";
   totalHit = 0;
   noteID = 0;
   calcAcc();
@@ -714,7 +728,10 @@ function mapSetup(data) {
     note.style.display = 'none';
     noteID++
     note.id = 'note' + noteID;
-    const colNum = (Math.floor(Math.abs(((x / 64) - 1) / 2))) + 1
+    var colNum = (Math.floor(Math.abs(((x / 64) - 1) / 2))) + 1
+    if(mirror){
+      colNum = 5 - colNum;
+    }
     const column = document.getElementById(`col${colNum}`);
     let holdBody;
     let holdHead;

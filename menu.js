@@ -189,6 +189,32 @@ settingsButton.addEventListener("click", function() {
     }
 });
 
+const increaseRate = document.getElementById("increase-rate");
+const decreaseRate = document.getElementById("decrease-rate");
+const rateText = document.getElementById("rate");
+
+increaseRate.addEventListener("click", () => {
+    if(window.speedModifier == 2){
+        window.speedModifier = 0.5
+    }
+    else{
+        window.speedModifier += 0.05;
+        window.speedModifier = Math.round(window.speedModifier * 100) / 100;
+    }
+    rateText.textContent = window.speedModifier.toFixed(2) + "x"
+});
+
+decreaseRate.addEventListener("click", () => {
+    if(window.speedModifier == 0.5){
+        window.speedModifier = 2
+    }
+    else{
+        window.speedModifier -= 0.05;
+        window.speedModifier = Math.round(window.speedModifier * 100) / 100;
+    }
+    rateText.textContent = window.speedModifier.toFixed(2) + "x"
+});
+
 const keybindInputBoxes = document.querySelectorAll('.keybind-input');
 
 // Add event listeners to each textbox
