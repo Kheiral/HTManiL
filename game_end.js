@@ -1,4 +1,4 @@
-async function endOfChart(judgementArray, score, beatmapID, accuracy){
+async function endOfChart(judgementArray, score, beatmapID, accuracy, rate){
 
     var date = new Date();
     var dd = String(date.getDate()).padStart(2, '0');
@@ -8,11 +8,11 @@ async function endOfChart(judgementArray, score, beatmapID, accuracy){
     date = mm + '/' + dd + '/' + yyyy;
 
     if(newScoreArray=window.scoreMap.get(beatmapID)){
-        newScoreArray.push({score, accuracy, judgementArray, date})
+        newScoreArray.push({score, accuracy, judgementArray, date, rate})
     }
     else{
         console.log('First Score!');
-        newScoreArray=[{score, accuracy, judgementArray, date}];
+        newScoreArray=[{score, accuracy, judgementArray, date, rate}];
     }
     window.scoreMap.set(beatmapID, newScoreArray);
 

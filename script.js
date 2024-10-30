@@ -580,7 +580,7 @@ function animateNotes() {
           for(let i = 1; i<4; i++){releaseNote(i)}
           document.body.style.cursor = 'auto';
           gameRunning = false;
-          if(!autoplay){endOfChart(judgementArray, score, beatmapID, currentAccuracy)};
+          if(!autoplay){endOfChart(judgementArray, score, beatmapID, currentAccuracy, window.speedModifier)};
         },1000);
       };
     }
